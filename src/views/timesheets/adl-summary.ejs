@@ -1,0 +1,130 @@
+<%- include('../partials/header') %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1 text-primary"><i class="fas fa-layer-group me-2"></i>Tổng hợp Bảng Ăn định lượng (ADL)</h4>
+    <div class="text-muted small">Tháng <%= targetMonth %>/<%= targetYear %></div>
+  </div>
+  
+  <form class="d-flex gap-2" method="GET" action="/timesheets/adl-summary">
+    <select name="month" class="form-select form-select-sm" style="width:auto;">
+      <% for(let i=1; i<=12; i++) { %>
+        <option value="<%= i %>" <%= targetMonth === i ? 'selected' : '' %>>Tháng <%= i %></option>
+      <% } %>
+    </select>
+    <select name="year" class="form-select form-select-sm" style="width:auto;">
+      <% const currentYear = new Date().getFullYear(); %>
+      <% for(let i = currentYear - 2; i <= currentYear + 2; i++) { %>
+        <option value="<%= i %>" <%= targetYear === i ? 'selected' : '' %>>Năm <%= i %></option>
+      <% } %>
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Xem</button>
+  </form>
+</div>
+
+<div class="row g-3 h-100" style="min-height: 700px;">
+  <!-- Sidebar Users -->
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-dark text-white border-0 py-3">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-users me-2"></i>Danh sách Cán bộ</h6>
+      </div>
+      <div class="card-body p-0" style="max-height: 700px; overflow-y: auto;">
+        <div class="list-group list-group-flush" id="userList">
+          <% if (officers.length === 0) { %>
+            <div class="p-4 text-center text-muted small">Không có cán bộ nào có công tác A/CT-A trong tháng này.</div>
+          <% } else { %>
+            <% officers.forEach(officer => { %>
+              <div class="list-group-item list-group-item-action user-item d-flex justify-content-between align-items-center border-bottom px-3 py-3" style="cursor: pointer;"
+                      onclick="loadUserADL('<%= officer._id %>', 'view', this)">
+                <div>
+                  <div class="fw-bold text-dark officer-name"><%= officer.hoTen %></div>
+                  <div class="small text-muted"><%= officer.chucVu %></div>
+                </div>
+                <button class="btn btn-sm btn-light border text-primary" onclick="event.stopPropagation(); loadUserADL('<%= officer._id %>', 'edit', this.closest('.user-item'))" title="Chỉnh sửa">
+                  <i class="fas fa-edit"></i> Sửa
+                </button>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Iframe Content -->
+  <div class="col-md-9">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-0 d-flex flex-column" id="mainContentArea">
+        <% if (officers.length > 0) { %>
+          <div id="welcomeMsg" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted" style="min-height: 400px;">
+            <i class="fas fa-hand-pointer fa-3x mb-3 text-light"></i>
+            <h5>Vui lòng chọn một cán bộ bên trái để xem bảng ADL</h5>
+          </div>
+          <iframe id="adlFrame" class="d-none" style="width: 100%; height: 100%; min-height: 700px; border: none;"></iframe>
+        <% } else { %>
+          <div class="h-100 d-flex align-items-center justify-content-center text-muted" style="min-height: 400px;">
+            Không có dữ liệu
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Helper to map officer ID to timesheet ID on the client side
+  const tsMap = <%- JSON.stringify(Object.keys(tsMap).reduce((acc, key) => { acc[key] = tsMap[key]._id; return acc; }, {})) %>;
+
+  function loadUserADL(officerId, mode, btnEl) {
+    // Highlight the active button
+    document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active', 'bg-primary', 'text-white'));
+    document.querySelectorAll('.officer-name').forEach(el => {
+      el.classList.add('text-dark');
+      el.classList.remove('text-white');
+    });
+    
+    if (btnEl) {
+      btnEl.classList.add('active', 'bg-primary', 'text-white');
+      const nameEl = btnEl.querySelector('.officer-name');
+      if (nameEl) {
+        nameEl.classList.add('text-white');
+        nameEl.classList.remove('text-dark');
+      }
+    }
+
+    const tsId = tsMap[officerId];
+    if (tsId) {
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      if (welcomeMsg) {
+        welcomeMsg.classList.remove('d-flex');
+        welcomeMsg.classList.add('d-none');
+      }
+      
+      const frame = document.getElementById('adlFrame');
+      frame.classList.remove('d-none');
+      
+      if (mode === 'edit') {
+        frame.src = `/timesheets/${tsId}/adl-preview?layout=false`;
+      } else {
+        frame.src = `/timesheets/${tsId}/adl-view?layout=false`;
+      }
+    }
+  }
+
+  // Auto load first user if exists
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstUser = document.querySelector('.user-item');
+    if (firstUser) {
+      // Find the officer ID which is the first argument in loadUserADL
+      const onclickAttr = firstUser.getAttribute('onclick');
+      const match = onclickAttr.match(/'([^']+)'/);
+      if (match && match[1]) {
+        loadUserADL(match[1], 'view', firstUser);
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

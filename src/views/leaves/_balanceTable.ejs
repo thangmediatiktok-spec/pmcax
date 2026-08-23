@@ -1,0 +1,46 @@
+<div class="table-responsive">
+  <table class="table table-hover mb-0 align-middle text-center">
+    <thead class="table-light">
+      <tr>
+        <th class="ps-3 text-start" style="width:40px">#</th>
+        <th class="text-start">Cán bộ</th>
+        <th>Tổ công tác</th>
+        <th>Ngày nhập ngũ</th>
+        <th>Thâm niên (năm)</th>
+        <th class="text-primary">Được nghỉ</th>
+        <th class="text-danger">Đã nghỉ</th>
+        <th class="text-success">Còn lại</th>
+        <th style="width:100px">Chi tiết</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% list.forEach((r, i) => { %>
+      <% 
+        const nnYear = r.officer.ngayNhapNgu ? new Date(r.officer.ngayNhapNgu).getFullYear() : null;
+        const seniority = nnYear ? year - nnYear : 0;
+      %>
+      <tr>
+        <td class="ps-3 text-muted small text-start"><%= i + 1 %></td>
+        <td class="text-start">
+          <div class="fw-semibold small"><%= r.officer.hoTen %></div>
+          <div class="text-muted" style="font-size:11px"><%= r.officer.maSo %> - <%= r.officer.chucVu %></div>
+        </td>
+        <td><span class="badge bg-light text-dark border"><%= r.officer.toCongTac ? r.officer.toCongTac.ten : '-' %></span></td>
+        <td><small><%= fmtDate(r.officer.ngayNhapNgu) %></small></td>
+        <td><small><%= seniority >= 0 ? seniority : 0 %></small></td>
+        <td class="fw-bold text-primary"><%= r.allowed %></td>
+        <td class="fw-bold text-danger"><%= r.taken %></td>
+        <td class="fw-bold text-success"><%= r.remaining %></td>
+        <td>
+          <a href="/leaves/<%= r.officer._id %>?year=<%= year %>" class="btn btn-sm btn-outline-primary" title="Lịch sử nghỉ phép"><i class="fas fa-eye"></i></a>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (list.length === 0) { %>
+      <tr>
+        <td colspan="9" class="text-center py-5 text-muted">Không có dữ liệu</td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>

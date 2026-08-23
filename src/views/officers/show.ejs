@@ -1,0 +1,193 @@
+<%- include('../partials/header', { activeMenu: typeof activeMenu !== 'undefined' ? activeMenu : 'officers' }) %>
+<%- include('../partials/flash') %>
+
+<% function fmtDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN') : '-'; } %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-id-card text-danger me-2"></i>Hồ sơ cán bộ</h5>
+  <div class="d-flex gap-2">
+    <% if (typeof canEdit !== 'undefined' && canEdit) { %>
+    <a href="/officers/<%= officer._id %>/edit" class="btn btn-warning btn-sm"><i class="fas fa-edit me-1"></i>Chỉnh sửa</a>
+    <% } %>
+    <a href="/officers" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Profile Card -->
+  <div class="col-lg-3">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body p-4">
+        <% if (officer.anhDaiDien) { %>
+          <img src="<%= officer.anhDaiDien %>" alt="<%= officer.hoTen %>" style="width:120px;height:140px;object-fit:cover;border-radius:8px;margin-bottom:12px">
+        <% } else { %>
+          <div style="width:100px;height:100px;background:linear-gradient(135deg,#e63946,#c1121f);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+            <span class="text-white fw-bold" style="font-size:36px"><%= officer.hoTen.charAt(0) %></span>
+          </div>
+        <% } %>
+        <h6 class="fw-bold mb-1"><%= officer.hoTen %></h6>
+        <span class="badge bg-secondary mb-2"><%= officer.maSo %></span>
+        <div class="mb-2">
+          <span class="badge bg-primary px-3 py-2">
+            <%= officer.toCongTac ? officer.toCongTac.ten : '-' %>
+          </span>
+        </div>
+        <% if (officer.dangVien) { %>
+          <span class="badge bg-danger"><i class="fas fa-star me-1"></i>Đảng viên</span>
+        <% } %>
+        <hr>
+        <div class="text-start small">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Chức vụ</span>
+            <span class="fw-semibold text-end" style="max-width:60%"><%= officer.chucVu %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Cấp bậc</span>
+            <span class="fw-semibold"><%= officer.capBac || '-' %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Tuổi</span>
+            <span class="fw-semibold"><%= officer.tuoi || '-' %></span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Giới tính</span>
+            <span class="fw-semibold"><%= officer.gioiTinh %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <% if (typeof canEdit !== 'undefined' && canEdit) { %>
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body p-3">
+        <h6 class="fw-semibold small mb-2">Thao tác</h6>
+        <% if (currentUser && currentUser.officerProfile && currentUser.officerProfile.toString() === officer._id.toString()) { %>
+        <button class="btn btn-outline-secondary w-100 mb-2 btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+          <i class="fas fa-key me-1"></i>Đổi mật khẩu đăng nhập
+        </button>
+        <% } %>
+        <a href="/officers/<%= officer._id %>/edit" class="btn btn-outline-warning w-100 mb-2 btn-sm">
+          <i class="fas fa-edit me-1"></i>Chỉnh sửa thông tin
+        </a>
+        <form action="/officers/<%= officer._id %>?_method=DELETE" method="POST" class="delete-form" data-confirm="Xác nhận xóa cán bộ này?">
+          <button type="submit" class="btn btn-outline-danger w-100 btn-sm">
+            <i class="fas fa-trash me-1"></i>Xóa hồ sơ
+          </button>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body p-3">
+        <h6 class="fw-semibold small mb-2">Tài liệu</h6>
+        <a href="/officers/<%= officer._id %>/documents" class="btn btn-outline-primary w-100 btn-sm">
+          <i class="fas fa-folder-open me-1"></i>Xem Tài liệu đính kèm
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="col-lg-9">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-semibold"><i class="fas fa-info-circle text-primary me-2"></i>Thông tin cá nhân</h6>
+      </div>
+      <div class="card-body p-3">
+        <div class="row g-2">
+          <% const fields = [
+            ['Ngày sinh', fmtDate(officer.ngaySinh)],
+            ['Số CCCD', officer.soCCCD || '-'],
+            ['Ngày cấp CCCD', fmtDate(officer.ngayCapCCCD)],
+            ['Số điện thoại', officer.soDienThoai || '-'],
+            ['Quê quán', officer.queQuan || '-'],
+            ['HKTT', officer.diaChiThuongTru || '-'],
+            ['Email', officer.email || '-']
+          ]; %>
+          <% fields.forEach(([label, val]) => { %>
+          <div class="col-md-6">
+            <div class="d-flex gap-2 py-2 border-bottom">
+              <span class="text-muted small" style="min-width:130px"><%= label %></span>
+              <span class="fw-medium small"><%= val %></span>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-semibold"><i class="fas fa-briefcase text-success me-2"></i>Thông tin công tác</h6>
+      </div>
+      <div class="card-body p-3">
+        <div class="row g-2">
+          <% const workFields = [
+            ['Số hiệu CAND', officer.maSo],
+            ['Cấp bậc hàm', officer.capBac || '-'],
+            ['Ngày lên hàm gần nhất - Cấp bậc gần nhất', fmtDate(officer.ngayNhanCapBac)],
+            ['Chức danh', officer.chucDanh || '-'],
+            ['Chức vụ', officer.chucVu],
+            ['Tổ / Đơn vị', officer.toCongTac ? officer.toCongTac.ten : officer.donViCongTac || '-'],
+            ['Đảng / Đoàn viên', officer.dangVien ? `Đảng viên - ${fmtDate(officer.ngayVaoDang)}` : 'Không'],
+            ['Ngày nhập ngũ', fmtDate(officer.ngayNhapNgu)]
+          ]; %>
+          <% workFields.forEach(([label, val]) => { %>
+          <div class="col-md-6">
+            <div class="d-flex gap-2 py-2 border-bottom">
+              <span class="text-muted small" style="min-width:130px"><%= label %></span>
+              <span class="fw-medium small"><%= val %></span>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-semibold"><i class="fas fa-history text-secondary me-2"></i>Quá trình công tác</h6>
+      </div>
+      <div class="card-body p-3">
+        <p class="mb-0 small" style="white-space: pre-line"><%= officer.quaTrinhCongTac || 'Chưa cập nhật' %></p>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-semibold"><i class="fas fa-graduation-cap text-warning me-2"></i>Trình độ & Bằng cấp</h6>
+      </div>
+      <div class="card-body p-3">
+        <div class="row g-2">
+          <% const eduFields = [
+            ['Học vấn', officer.hocVan || '-'],
+            ['Nghiệp vụ CA', officer.nghiepVuCA || '-'],
+            ['Trường đào tạo CA', officer.truongDaoTaoCA || '-'],
+            ['Chính trị (LLCT)', officer.lyLuanChinhTri || '-'],
+            ['Ngoại ngữ', officer.ngoaiNgu || '-'],
+            ['Tin học', officer.tinHoc || '-'],
+            ['Chuyên ngành', officer.chuyenNganh || '-']
+          ]; %>
+          <% eduFields.forEach(([label, val]) => { %>
+          <div class="col-md-4">
+            <div class="d-flex flex-column py-2 border-bottom">
+              <span class="text-muted small"><%= label %></span>
+              <span class="fw-medium"><%= val %></span>
+            </div>
+          </div>
+          <% }) %>
+          <% if (officer.ghiChu) { %>
+          <div class="col-12 mt-2">
+            <span class="text-muted small">Ghi chú</span>
+            <p class="mb-0 mt-1"><%= officer.ghiChu %></p>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

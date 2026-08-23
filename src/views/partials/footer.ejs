@@ -1,0 +1,159 @@
+    </div><!-- end p-4 -->
+  </div><!-- end main content -->
+</div><!-- end wrapper -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Toastr config
+  toastr.options = {
+    "closeButton": true,
+    "positionClass": "toast-bottom-right",
+    "timeOut": "3000"
+  };
+
+  // Global delete confirmation
+  document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const msg = this.getAttribute('data-confirm') || 'Bạn có chắc chắn muốn xóa?';
+      Swal.fire({
+        title: 'Xác nhận xóa',
+        text: msg,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Đồng ý xóa',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script><!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="fas fa-key text-warning me-2"></i>Đổi mật khẩu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/change-password" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mật khẩu cũ</label>
+            <input type="password" name="oldPassword" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mật khẩu mới</label>
+            <input type="password" name="newPassword" class="form-control" minlength="6" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+            <input type="password" name="confirmPassword" class="form-control" minlength="6" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>Lưu mật khẩu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav">
+  <a href="/dashboard" class="mobile-nav-item <%= locals.activeMenu === 'dashboard' ? 'active' : '' %>">
+    <i class="fas fa-home"></i>
+    <span>Tổng quan</span>
+  </a>
+  <% if (typeof currentUser !== 'undefined' && currentUser.role === 'cbcs' && currentUser.officerProfile) { %>
+  <a href="/officers/<%= currentUser.officerProfile %>" class="mobile-nav-item <%= locals.activeMenu === 'personal_profile' ? 'active' : '' %>">
+    <i class="fas fa-user-shield"></i>
+    <span>Cá nhân</span>
+  </a>
+  <% } else { %>
+  <a href="/officers" class="mobile-nav-item <%= locals.activeMenu === 'officers' ? 'active' : '' %>">
+    <i class="fas fa-users"></i>
+    <span>Cán bộ</span>
+  </a>
+  <% } %>
+  <a href="/rosters" class="mobile-nav-item <%= locals.activeMenu === 'rosters' ? 'active' : '' %>">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Lịch trực</span>
+  </a>
+  <a href="/leaves<%= (typeof currentUser !== 'undefined' && currentUser.role === 'cbcs' && currentUser.officerProfile) ? ('/' + currentUser.officerProfile) : '' %>" class="mobile-nav-item <%= String(locals.activeMenu).startsWith('leaves') ? 'active' : '' %>">
+    <i class="fas fa-calendar-check"></i>
+    <span>Nghỉ phép</span>
+  </a>
+  <a href="/timesheets" class="mobile-nav-item <%= String(locals.activeMenu).startsWith('timesheet') ? 'active' : '' %>">
+    <i class="fas fa-clipboard-list"></i>
+    <span>Chấm công</span>
+  </a>
+  <a href="#" class="mobile-nav-item" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuOffcanvas">
+    <i class="fas fa-bars"></i>
+    <span>Menu</span>
+  </a>
+</nav>
+
+<!-- Mobile Offcanvas Menu -->
+<div class="offcanvas offcanvas-bottom shadow-lg" tabindex="-1" id="mobileMenuOffcanvas" style="height: auto; max-height: 85vh; border-radius: 20px 20px 0 0; z-index: 1055 !important;">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold">Trình đơn</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body px-0 py-2">
+    <div class="px-3 py-3 d-flex align-items-center gap-3">
+      <% if (typeof currentUser !== 'undefined' && currentUser.anhDaiDien) { %>
+        <img src="<%= currentUser.anhDaiDien %>" alt="Avatar" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">
+      <% } else { %>
+        <div style="width:50px;height:50px;background:linear-gradient(135deg,#e63946,#c1121f);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;">
+          <%= (typeof currentUser !== 'undefined' && currentUser.hoTen) ? currentUser.hoTen.charAt(0) : 'U' %>
+        </div>
+      <% } %>
+      <div>
+        <div class="fw-bold fs-6">
+          <%= typeof currentUser !== 'undefined' ? ((currentUser.capBac ? currentUser.capBac + ' ' : '') + currentUser.hoTen) : '' %>
+        </div>
+        <div class="small text-muted">
+          <%= (typeof currentUser !== 'undefined' && currentUser.maSo) ? currentUser.maSo : (typeof currentUser !== 'undefined' ? currentUser.role.toUpperCase() : '') %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="list-group list-group-flush border-top">
+      <% if (typeof currentUser !== 'undefined' && currentUser.role === 'admin') { %>
+      <a href="/users" class="list-group-item list-group-item-action py-3 border-0 d-flex align-items-center fw-medium"><i class="fas fa-users-cog text-secondary me-3 fs-5" style="width:24px"></i>Quản lý Tài khoản</a>
+      <a href="/teams" class="list-group-item list-group-item-action py-3 border-0 d-flex align-items-center fw-medium"><i class="fas fa-people-group text-secondary me-3 fs-5" style="width:24px"></i>Tổ công tác</a>
+      <% } %>
+      <a href="/logout" class="list-group-item list-group-item-action py-3 border-0 text-danger d-flex align-items-center fw-medium"><i class="fas fa-sign-out-alt me-3 fs-5" style="width:24px"></i>Đăng xuất</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Clock update
+  function updateClock() {
+    const now = new Date();
+    const el = document.getElementById('clock');
+    if (el) el.textContent = now.toLocaleTimeString('vi-VN');
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Sidebar toggle for desktop
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth > 767.98) {
+      sidebar.classList.toggle('sidebar-collapsed');
+    }
+  });
+</script>
+</body>
+</html>

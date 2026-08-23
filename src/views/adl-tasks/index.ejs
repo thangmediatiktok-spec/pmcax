@@ -1,0 +1,284 @@
+<%- include('../partials/header') %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1 text-primary"><i class="fas fa-list-check me-2"></i>Quản lý Công việc Ăn định lượng (ADL)</h4>
+    <div class="text-muted small">Cấu hình tự động điền bảng ADL theo từng Tổ công tác</div>
+  </div>
+  <button class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#addAdlTaskModal">
+    <i class="fas fa-plus me-1"></i>Thêm Công việc
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body bg-light rounded d-flex align-items-center gap-3 py-3">
+    <label class="fw-bold mb-0 text-nowrap">Chọn Tổ công tác:</label>
+    <select class="form-select w-auto fw-medium shadow-sm" onchange="window.location.href='/adl-tasks?teamId=' + this.value">
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>" <%= currentTeamId === team._id.toString() ? 'selected' : '' %>><%= team.ten %></option>
+      <% }) %>
+    </select>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="accordion accordion-flush" id="taskAccordion">
+      <% if (typeof taskGroups === 'undefined' || taskGroups.length === 0) { %>
+        <div class="text-center py-5 text-muted">
+          <i class="fas fa-list-check fa-3x mb-3 text-light"></i>
+          <p class="mb-0">Chưa có công việc nào cho Tổ này.</p>
+        </div>
+      <% } else { %>
+        <% taskGroups.forEach((group, gIdx) => { %>
+          <div class="accordion-item border-bottom">
+            <h2 class="accordion-header" id="heading<%= gIdx %>">
+              <button class="accordion-button collapsed shadow-none fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= gIdx %>">
+                <div class="d-flex w-100 justify-content-between align-items-center me-3">
+                  <span class="text-primary me-2"><%= group.basePlan %></span>
+                  <span class="badge bg-secondary rounded-pill text-nowrap"><%= group.tasks.length %> Thôn</span>
+                </div>
+              </button>
+            </h2>
+            <div id="collapse<%= gIdx %>" class="accordion-collapse collapse" data-bs-parent="#taskAccordion">
+              <div class="accordion-body p-0">
+                <div class="bg-light p-2 border-bottom d-flex justify-content-end">
+                  <button class="btn btn-sm btn-outline-danger" onclick='deleteGroup(<%- JSON.stringify(group.tasks.map(t => t._id)) %>)'>
+                    <i class="fas fa-trash-alt me-1"></i>Xóa toàn bộ <%= group.tasks.length %> công việc nhóm này
+                  </button>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3" style="width: 45%;">Kế hoạch</th>
+                        <th style="width: 45%;">Kết quả</th>
+                        <th class="text-center pe-3">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% group.tasks.forEach((t) => { %>
+                        <tr>
+                          <td class="ps-3">
+                            <span class="small text-break"><%= t.plan %></span>
+                          </td>
+                          <td>
+                            <span class="small text-break text-muted"><%= t.result %></span>
+                          </td>
+                          <td class="text-center pe-3">
+                            <div class="btn-group shadow-sm">
+                              <button class="btn btn-sm btn-light border text-primary" title="Sửa" 
+                                onclick="editTask('<%= t._id %>', `<%= t.plan.replace(/`/g, '\\`') %>`, `<%= t.result.replace(/`/g, '\\`') %>`)">
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button class="btn btn-sm btn-light border text-danger" title="Xóa" onclick="deleteTask('<%= t._id %>')">
+                                <i class="fas fa-trash-alt"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add -->
+<div class="modal fade" id="addAdlTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold">Thêm Công việc ADL</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/adl-tasks" method="POST">
+        <div class="modal-body p-4 bg-light">
+          <input type="hidden" name="team" value="<%= currentTeamId %>">
+          
+          <div class="alert alert-info small border-0 py-2 mb-3">
+            <i class="fas fa-lightbulb me-2 text-warning"></i>
+            <strong>Mẹo:</strong> Bạn có thể gõ <strong>[THON]</strong> vào nội dung để hệ thống tự động điền tên các Thôn/Bản.
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kế hoạch công tác</label>
+            <textarea name="plan" class="form-control shadow-sm" rows="3" placeholder="VD: Tuần tra tại [THON]" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kết quả công tác</label>
+            <textarea name="result" class="form-control shadow-sm" rows="3" placeholder="VD: Từ 7h30 đến 11h30 tuần tra tại [THON]" required></textarea>
+          </div>
+          
+          <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white py-2 border-bottom">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="bulkGenerateCheck" name="bulk_generate" onchange="toggleVillages()">
+                <label class="form-check-label fw-bold text-primary" for="bulkGenerateCheck">
+                  <i class="fas fa-magic me-1"></i>Sinh hàng loạt theo Thôn/Bản và Thời gian
+                </label>
+              </div>
+            </div>
+            <div class="card-body bg-white" id="villagesContainer" style="display: none;">
+              
+              <h6 class="fw-bold text-dark mt-2 mb-2"><i class="fas fa-clock me-1 text-warning"></i> Chọn Thời gian (Biến: <strong>[GIO]</strong>)</h6>
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input time-check" type="checkbox" name="times" value="Từ 07h00' đến 11h30'" id="t_1">
+                    <label class="form-check-label small" for="t_1">Từ 07h00' đến 11h30' (Sáng)</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input time-check" type="checkbox" name="times" value="Từ 13h30' đến 17h30'" id="t_2">
+                    <label class="form-check-label small" for="t_2">Từ 13h30' đến 17h30' (Chiều)</label>
+                  </div>
+                </div>
+              </div>
+
+              <h6 class="fw-bold text-dark mb-2 d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-map-marker-alt me-1 text-danger"></i> Chọn Thôn (Biến: <strong>[THON]</strong>)</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="checkAllVillages(true)">Chọn tất cả</button>
+              </h6>
+              <div class="row g-2" style="max-height: 200px; overflow-y: auto;">
+                <% if (typeof villages !== 'undefined' && villages.length > 0) { %>
+                  <% villages.forEach((v, idx) => { %>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="form-check">
+                        <input class="form-check-input village-check" type="checkbox" name="villages" value="<%= v %>" id="v_<%= idx %>">
+                        <label class="form-check-label small" for="v_<%= idx %>"><%= v %></label>
+                      </div>
+                    </div>
+                  <% }) %>
+                <% } else { %>
+                  <div class="text-muted small">Không có dữ liệu Thôn/Bản.</div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-white">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Lưu công việc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editAdlTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning border-0">
+        <h5 class="modal-title fw-bold text-dark">Sửa Công việc ADL</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editForm" method="POST">
+        <div class="modal-body p-4 bg-light">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kế hoạch công tác</label>
+            <textarea name="plan" id="editPlan" class="form-control shadow-sm" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kết quả công tác</label>
+            <textarea name="result" id="editResult" class="form-control shadow-sm" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-white">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-warning fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Form -->
+<form id="deleteForm" method="POST" style="display: none;"></form>
+
+<!-- Bulk Delete Form -->
+<form id="bulkDeleteForm" action="/adl-tasks/bulk?_method=DELETE" method="POST" style="display: none;"></form>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  let editModal;
+  document.addEventListener('DOMContentLoaded', function() {
+    editModal = new bootstrap.Modal(document.getElementById('editAdlTaskModal'));
+  });
+
+  function editTask(id, plan, result) {
+    document.getElementById('editForm').action = `/adl-tasks/${id}?_method=PUT`;
+    document.getElementById('editPlan').value = plan;
+    document.getElementById('editResult').value = result;
+    editModal.show();
+  }
+
+  function deleteTask(id) {
+    Swal.fire({
+      title: 'Xóa công việc này?',
+      text: "Thao tác này không thể hoàn tác!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Vâng, xóa nó!',
+      cancelButtonText: 'Hủy'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const form = document.getElementById('deleteForm');
+        form.action = `/adl-tasks/${id}?_method=DELETE`;
+        form.submit();
+      }
+    });
+  }
+
+  function deleteGroup(taskIds) {
+    Swal.fire({
+      title: 'Xóa toàn bộ nhóm này?',
+      text: `Bạn đang xóa ${taskIds.length} công việc. Thao tác này không thể hoàn tác!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Xóa tất cả!',
+      cancelButtonText: 'Hủy'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const form = document.getElementById('bulkDeleteForm');
+        form.innerHTML = ''; // Clear previous
+        taskIds.forEach(id => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'taskIds[]';
+          input.value = id;
+          form.appendChild(input);
+        });
+        form.submit();
+      }
+    });
+  }
+
+  function toggleVillages() {
+    const isChecked = document.getElementById('bulkGenerateCheck').checked;
+    document.getElementById('villagesContainer').style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) {
+      checkAllVillages(false);
+    }
+  }
+
+  function checkAllVillages(check) {
+    const checkboxes = document.querySelectorAll('.village-check');
+    checkboxes.forEach(cb => cb.checked = check);
+  }
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,338 @@
+<% if (typeof layout === 'undefined' || layout !== false) { %>
+<%- include('../partials/header') %>
+<%- include('../partials/flash') %>
+<% } else { %>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+<% } %>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1 text-primary">
+      <i class="fas fa-hamburger me-2"></i>Bảng Thống kê Ăn định lượng
+    </h4>
+    <div class="text-muted small">Cán bộ: <%= officer.hoTen %> - Tháng <%= timesheet.month %>/<%= timesheet.year %></div>
+  </div>
+  <div>
+    <% if (typeof layout === 'undefined' || layout !== false) { %>
+    <a href="/timesheets/<%= timesheet.year %>/<%= timesheet.month %>/<%= officer._id %>" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+    <% } %>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body bg-light rounded">
+        <label class="form-label fw-semibold small text-muted text-uppercase mb-1">Chức danh Cán bộ (*)</label>
+        <textarea id="exportTitle" class="form-control mb-3" rows="2"><%= officer.chucVu || 'Cán bộ' %></textarea>
+        
+        <label class="form-label fw-semibold small text-muted text-uppercase mb-1">Mức hưởng định lượng (**)</label>
+        <input type="text" id="exportLevel" class="form-control mb-3" value="Mức IV">
+
+        <button type="button" class="btn btn-success w-100 fw-bold shadow-sm py-2" onclick="exportToExcel()">
+          <i class="fas fa-file-excel me-2"></i>XUẤT FILE EXCEL
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="alert alert-info small border-0 py-2 mb-3">
+          <i class="fas fa-lightbulb me-2 text-warning"></i>
+          <strong>Mẹo:</strong> Hệ thống đã tự điền nội dung công việc mẫu. Bạn có thể bấm nút <i class="fas fa-edit mx-1 text-primary"></i> bên cạnh mỗi dòng để tự gõ tay lại nội dung theo ý mình.
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+          <% if (hasTasks) { %>
+            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" onclick="randomizeATasks()">
+              <i class="fas fa-dice me-1"></i>Random Công việc A
+            </button>
+          <% } %>
+          <button type="button" class="btn btn-sm btn-primary fw-semibold" onclick="saveAllADL()">
+            <i class="fas fa-save me-1"></i>Lưu toàn bộ
+          </button>
+        </div>
+        
+        <% if (adlRecords.length === 0) { %>
+          <div class="text-center text-muted py-4">Không có ngày ăn định lượng nào trong tháng này.</div>
+        <% } else { %>
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-bordered table-hover align-middle mb-0" id="adlTable">
+              <thead class="table-light position-sticky top-0 shadow-sm" style="z-index: 1;">
+                <tr>
+                  <th style="width:100px;">Ngày</th>
+                  <th>Kế hoạch công tác</th>
+                  <th>Kết quả công tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% adlRecords.forEach(r => { %>
+                  <tr data-day="<%= r.day %>" data-plan="<%= r.adlPlan %>" data-result="<%= r.adlResult %>">
+                    <td class="text-center fw-bold">
+                      <%= r.day %>/<%= String(timesheet.month).padStart(2,'0') %>
+                      <div class="small fw-normal text-muted"><%= r.code %></div>
+                    </td>
+                    <td>
+                      <div class="d-flex justify-content-between align-items-start gap-2">
+                        <span id="display-plan-<%= r.day %>" class="small text-break"><%= r.adlPlan %></span>
+                        <button class="btn btn-sm btn-light border text-primary px-2 py-0 shadow-sm" onclick="openEditModal(<%= r.day %>)" title="Sửa">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </div>
+                      <% if (r.isManual) { %>
+                        <div class="mt-1"><span class="badge bg-primary" style="font-size:0.6rem;">ĐÃ SỬA</span></div>
+                      <% } else { %>
+                        <div class="mt-1"><span class="badge bg-secondary" style="font-size:0.6rem;">TỰ ĐỘNG</span></div>
+                      <% } %>
+                    </td>
+                    <td>
+                      <span id="display-result-<%= r.day %>" class="small text-break"><%= r.adlResult %></span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit ADL -->
+<div class="modal fade" id="editADLModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Chỉnh sửa Nội dung công việc</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 bg-light">
+        <input type="hidden" id="editDay">
+        
+        <div class="mb-3">
+          <label class="form-label fw-bold text-primary">Kế hoạch công tác:</label>
+          <textarea id="editPlan" class="form-control shadow-sm" rows="4"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-success">Kết quả thực hiện:</label>
+          <textarea id="editResult" class="form-control shadow-sm" rows="4"></textarea>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="saveADL()"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    let teamTasks = [];
+    <% if (typeof teamTasksJson !== 'undefined') { %>
+      teamTasks = <%- teamTasksJson %>;
+    <% } %>
+
+    function randomizeATasks() {
+      if (teamTasks.length === 0) return;
+      const rows = document.querySelectorAll('#adlTable tbody tr');
+      rows.forEach(tr => {
+        const codeText = tr.querySelector('td:first-child div').innerText.trim();
+        if (codeText === 'A') {
+          // Check if it's manually edited (badge says ĐÃ SỬA)
+          const badgeText = tr.querySelector('td:nth-child(2) .badge').innerText.trim();
+          if (badgeText !== 'ĐÃ SỬA') {
+            const randomTask = teamTasks[Math.floor(Math.random() * teamTasks.length)];
+            tr.setAttribute('data-plan', randomTask.plan);
+            tr.setAttribute('data-result', randomTask.result);
+            document.getElementById(`display-plan-${tr.getAttribute('data-day')}`).innerText = randomTask.plan;
+            document.getElementById(`display-result-${tr.getAttribute('data-day')}`).innerText = randomTask.result;
+          }
+        }
+      });
+    }
+
+    function saveAllADL() {
+      const btn = event.currentTarget;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang lưu...';
+      btn.disabled = true;
+
+      const rows = document.querySelectorAll('#adlTable tbody tr');
+      const data = {};
+      rows.forEach(tr => {
+        const day = tr.getAttribute('data-day');
+        data[`plan_${day}`] = tr.getAttribute('data-plan');
+        data[`result_${day}`] = tr.getAttribute('data-result');
+      });
+
+      fetch(`/timesheets/<%= timesheet._id %>/adl-update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(res => res.json()).then(res => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if (res.success) {
+          alert('Đã lưu toàn bộ dữ liệu thành công!');
+          // Change all "TỰ ĐỘNG" badges to "ĐÃ SỬA" since they are now saved in DB
+          document.querySelectorAll('#adlTable tbody tr').forEach(tr => {
+            const badge = tr.querySelector('td:nth-child(2) .badge');
+            if (badge && badge.classList.contains('bg-secondary')) {
+              badge.classList.remove('bg-secondary');
+              badge.classList.add('bg-primary');
+              badge.innerText = 'ĐÃ SỬA';
+            }
+          });
+        } else {
+          alert('Lỗi khi lưu: ' + res.error);
+        }
+      }).catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('Lỗi kết nối khi lưu dữ liệu.');
+      });
+    }
+
+    let editModal;
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    editModal = new bootstrap.Modal(document.getElementById('editADLModal'));
+  });
+
+  function openEditModal(day) {
+    const tr = document.querySelector(`tr[data-day="${day}"]`);
+    document.getElementById('editDay').value = day;
+    document.getElementById('editPlan').value = tr.getAttribute('data-plan');
+    document.getElementById('editResult').value = tr.getAttribute('data-result');
+    editModal.show();
+  }
+
+  function saveADL() {
+    const day = document.getElementById('editDay').value;
+    const plan = document.getElementById('editPlan').value.trim();
+    const result = document.getElementById('editResult').value.trim();
+    
+    // Update UI immediately
+    const tr = document.querySelector(`tr[data-day="${day}"]`);
+    tr.setAttribute('data-plan', plan);
+    tr.setAttribute('data-result', result);
+    document.getElementById(`display-plan-${day}`).innerText = plan;
+    document.getElementById(`display-result-${day}`).innerText = result;
+    
+    // Change badge to "ĐÃ SỬA"
+    const badgeDiv = document.getElementById(`display-plan-${day}`).nextElementSibling.nextElementSibling;
+    if (badgeDiv) {
+      badgeDiv.innerHTML = '<span class="badge bg-primary" style="font-size:0.6rem;">ĐÃ SỬA</span>';
+    }
+
+    editModal.hide();
+
+    // Send to server
+    const data = {};
+    data[`plan_${day}`] = plan;
+    data[`result_${day}`] = result;
+
+    fetch(`/timesheets/<%= timesheet._id %>/adl-update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(res => res.json()).then(res => {
+      if (!res.success) alert('Lỗi khi lưu dữ liệu lên máy chủ.');
+    });
+  }
+
+  // EXCEL EXPORT SCRIPT (Dựa theo ADL.html)
+  async function exportToExcel() {
+    const tableRows = document.querySelectorAll('#adlTable tbody tr');
+    if (tableRows.length === 0) {
+      alert("Không có dữ liệu để xuất!");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('ThongKe');
+    
+    const month = '<%= String(timesheet.month).padStart(2, "0") %>';
+    const year = '<%= timesheet.year %>';
+    const name = '<%= officer.hoTen %>';
+    const pos = document.getElementById('exportTitle').value;
+    const lv = document.getElementById('exportLevel').value;
+
+    worksheet.mergeCells('A1:C1'); worksheet.getCell('A1').value = 'CÔNG AN TỈNH GIA LAI';
+    worksheet.mergeCells('A2:C2'); worksheet.getCell('A2').value = 'CÔNG AN XÃ CHƯ A THAI';
+    worksheet.mergeCells('D1:F1'); worksheet.getCell('D1').value = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM';
+    worksheet.mergeCells('D2:F2'); worksheet.getCell('D2').value = 'Độc lập - Tự do - Hạnh phúc';
+    worksheet.mergeCells('A4:F4'); worksheet.getCell('A4').value = 'BẢNG THỐNG KÊ NỘI DUNG CÔNG VIỆC ĐỀ NGHỊ HƯỞNG ĐỊNH LƯỢNG ĂN';
+    worksheet.mergeCells('A5:F5'); worksheet.getCell('A5').value = `THÁNG ${month} NĂM ${year}`;
+    worksheet.mergeCells('A6:F6'); worksheet.getCell('A6').value = `Của đồng chí: ${name}`;
+
+    ['A1','A2','D1','D2','A4','A5','A6'].forEach(c => {
+        worksheet.getCell(c).alignment = { horizontal: 'center' };
+        worksheet.getCell(c).font = { name: 'Times New Roman', bold: true, size: 12 };
+    });
+
+    const headerRow = worksheet.getRow(8);
+    headerRow.values = ['Thời gian', 'Chức danh (*)', 'Mức (**)', 'Kế hoạch công tác', 'Kết quả công tác', 'Ghi chú'];
+    headerRow.eachCell(c => {
+        c.font = { name: 'Times New Roman', bold: true };
+        c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        c.fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FFF2F2F2'} };
+    });
+
+    let curr = 9;
+    const n = "Đây là thôn thuộc khu vực miền núi, có đông đồng bào dân tộc thiểu số sinh sống; điều kiện giao thông đi lại còn nhiều khó khăn, trình độ dân trí không đồng đều, đời sống và điều kiện kinh tế của Nhân dân còn hạn chế.";
+
+    tableRows.forEach(tr => {
+      const day = String(tr.getAttribute('data-day')).padStart(2, '0');
+      const dateStr = `${day}/${month}/${year}`;
+      const p = tr.getAttribute('data-plan');
+      const r = tr.getAttribute('data-result');
+
+      const row = worksheet.getRow(curr);
+      row.values = [dateStr, pos, lv, p, r, n];
+      row.eachCell(c => {
+          c.font = { name: 'Times New Roman', size: 11 };
+          c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+          c.alignment = { wrapText: true, vertical: 'middle', horizontal: (c.address.startsWith('A') || c.address.startsWith('C')) ? 'center' : 'left' };
+      });
+      row.height = 105;
+      curr++;
+    });
+
+    let sigRow = curr + 1;
+    worksheet.mergeCells(`A${sigRow}:F${sigRow}`);
+    worksheet.getCell(`A${sigRow}`).value = 'Tôi xin cam đoan những thông tin trên là đúng và đúng với số kế hoạch công tác tuần. Nếu có sai sót tôi xin chịu hoàn toàn trách nhiệm.';
+    worksheet.getCell(`A${sigRow}`).font = { name: 'Times New Roman', italic: true };
+
+    sigRow += 5;
+    const s = worksheet.getRow(sigRow);
+    s.values = ['', 'NGƯỜI LẬP', '', 'LÃNH ĐẠO ĐỘI/TỔ', '', 'LÃNH ĐẠO ĐƠN VỊ'];
+    s.eachCell(c => { if(c.value) { c.font = { name: 'Times New Roman', bold: true }; c.alignment = { horizontal: 'center' }; } });
+
+    worksheet.getColumn(1).width = 12;
+    worksheet.getColumn(2).width = 25;
+    worksheet.getColumn(3).width = 10;
+    worksheet.getColumn(4).width = 35;
+    worksheet.getColumn(5).width = 40;
+    worksheet.getColumn(6).width = 35;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `BangKe_DLAN_${name.replace(/\s/g,'_')}.xlsx`);
+  }
+</script>
+
+<% if (typeof layout === 'undefined' || layout !== false) { %>
+<%- include('../partials/footer') %>
+<% } else { %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<% } %>

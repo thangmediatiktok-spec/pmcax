@@ -1,0 +1,36 @@
+<%- include('../partials/header', { activeMenu: 'teams' }) %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-plus text-danger me-2"></i>Thêm tổ công tác</h5>
+  <a href="/teams" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:600px">
+  <div class="card-body p-4">
+    <form action="/teams" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên tổ công tác <span class="text-danger">*</span></label>
+        <input type="text" name="ten" class="form-control" required placeholder="VD: Tổ địa bàn số 1">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Thứ tự hiển thị</label>
+        <input type="number" name="thuTu" class="form-control" value="0" min="0">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Mô tả</label>
+        <textarea name="moTa" class="form-control" rows="3" placeholder="Mô tả nhiệm vụ hoặc địa bàn phụ trách..."></textarea>
+      </div>
+      <div class="mb-4 form-check">
+        <input class="form-check-input" type="checkbox" name="trangThai" value="true" id="trangThai" checked>
+        <label class="form-check-label" for="trangThai">Đang sử dụng</label>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger px-4"><i class="fas fa-save me-2"></i>Lưu</button>
+        <a href="/teams" class="btn btn-outline-secondary px-4">Hủy</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

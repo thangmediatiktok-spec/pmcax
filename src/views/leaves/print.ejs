@@ -1,0 +1,258 @@
+<%- include('../partials/header') %>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  #pdfContent {
+    background: white;
+    width: 160mm; /* 210 - 30 left - 20 right */
+    min-height: 257mm; /* 297 - 20 top - 20 bottom */
+    padding: 0;
+    margin: 0 auto;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13pt;
+    color: black;
+    line-height: 1.35;
+    display: flex;
+    flex-direction: column;
+  }
+  .a4-wrapper {
+    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm 20mm 20mm 30mm;
+    box-sizing: border-box;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+  }
+  #pdfContent p { margin: 0 0 3px 0; }
+  #pdfContent strong { font-weight: bold; }
+  #pdfContent table { border-collapse: collapse; }
+  #pdfContent td { padding: 0; }
+  .pdf-main { flex: 0 0 auto; }
+  .pdf-spacer { flex: 1 1 auto; }
+  .pdf-footer { flex: 0 0 auto; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0 text-primary"><i class="fas fa-print me-2"></i>Tạo đơn nghỉ phép (PDF)</h4>
+    <small class="text-muted">Tự động lấy thông tin từ hệ thống</small>
+  </div>
+  <a href="/leaves" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 sticky-top" style="top: 20px; z-index: 10;">
+      <div class="card-header bg-white py-3 border-bottom-0">
+        <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-edit me-1"></i>Thông tin đơn xin nghỉ</h6>
+      </div>
+      <div class="card-body bg-light">
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Chọn Cán bộ chiến sĩ <span class="text-danger">*</span></label>
+          <select id="officerSelect" class="form-select border-primary shadow-sm">
+            <option value="">-- Click để chọn CBCS --</option>
+          </select>
+        </div>
+        <div class="mb-3 row g-2">
+          <div class="col-6">
+            <label class="form-label small fw-bold">Từ ngày <span class="text-danger">*</span></label>
+            <input type="date" id="tuNgay" class="form-control">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-bold">Đến hết ngày <span class="text-danger">*</span></label>
+            <input type="date" id="denNgay" class="form-control">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Nơi nghỉ <span class="text-danger">*</span></label>
+          <input type="text" id="noiNghi" class="form-control" placeholder="Xã Ea Hleo, tỉnh Đăk Lăk...">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Lý do nghỉ <span class="text-danger">*</span></label>
+          <input type="text" id="lyDo" class="form-control" value="Giải quyết công việc gia đình.">
+        </div>
+        <div class="mb-4">
+          <label class="form-label small fw-bold">Xác nhận của Chỉ huy <span class="text-danger">*</span></label>
+          <select id="nguoiKy" class="form-select">
+            <option value="Trưởng Công an xã">Trưởng Công an xã</option>
+            <option value="Phó Trưởng Công an xã">Phó Trưởng Công an xã</option>
+          </select>
+        </div>
+        <button id="btnExport" class="btn btn-danger w-100 fw-bold py-2 shadow-sm">
+          <i class="fas fa-file-pdf me-2"></i>Lưu thành file PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8 p-4 bg-secondary bg-opacity-10 rounded">
+    <div class="text-center mb-2 fw-semibold text-muted"><i class="fas fa-eye me-1"></i>Bản xem trước (Live Preview)</div>
+    
+    <div class="a4-wrapper">
+      <div id="pdfContent">
+        <!-- PHẦN NỘI DUNG CHÍNH -->
+        <div class="pdf-main">
+          <table style="width: 100%; margin-bottom: 8px;">
+            <tr>
+              <td style="width: 38%; text-align: center; vertical-align: top; white-space: nowrap; font-size: 12.5pt;">
+                <p>CÔNG AN TỈNH GIA LAI</p>
+                <p style="font-weight: bold; text-decoration: underline;">CÔNG AN XÃ CHƯ A THAI</p>
+              </td>
+              <td style="width: 62%; text-align: center; vertical-align: top; white-space: nowrap; font-size: 12.5pt;">
+                <p style="font-weight: bold;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p style="font-weight: bold; text-decoration: underline;">Độc lập - Tự do - Hạnh phúc</p>
+              </td>
+            </tr>
+          </table>
+
+          <p style="text-align: center; font-style: italic; margin-bottom: 8px;">
+            <em>Chư A Thai, ngày <span id="outNgayIn">...</span> tháng <span id="outThangIn">...</span> năm <span id="outNamIn">.....</span></em>
+          </p>
+
+          <p style="text-align: center; font-size: 15pt; font-weight: bold; margin-top: 12px; margin-bottom: 2px;">ĐƠN XIN NGHỈ PHÉP</p>
+          <p style="text-align: center; margin-bottom: 12px;">(Chế độ phép năm <span id="outNamPhep">2026</span>)</p>
+
+          <p>Kính gửi: Đồng chí Chỉ huy Công an xã.</p>
+          <p>Tôi tên: <strong id="outTen">........................................</strong> &nbsp;&nbsp;&nbsp;&nbsp; Chức vụ: <span id="outChucVu">...............</span></p>
+          <p>Đơn vị công tác: Công an xã Chư A Thai, tỉnh Gia Lai.</p>
+          <p>Vào CAND <em>(tháng/năm)</em>: <span id="outVaoNgay">....................</span>.</p>
+          <p>Số năm công tác thực tế <em>(tính đến ngày xin nghỉ phép)</em>: <span id="outNamCongTac">....................</span>.</p>
+          <p>Số ngày đã nghỉ trừ trong phép năm <em>(tính đến hiện tại)</em>: <span id="outNgayDaNghi">......</span> ngày.</p>
+          <p>Thời gian nghỉ: Từ ngày <strong id="outTuNgay">.../.../...</strong> đến hết ngày <strong id="outDenNgay">.../.../...</strong>.</p>
+          <p>Nơi nghỉ: <strong id="outNoiNghi">......................................................................</strong></p>
+          <p>Lý do nghỉ: <span id="outLyDo">......................................................................</span></p>
+          <p>Vì vậy, tôi làm đơn này kính trình chỉ huy xem xét cho tôi được nghỉ chế độ phép năm <span id="outNamPhep2">2026</span> theo quy định./.</p>
+
+          <table style="width: 100%; margin-top: 15px;">
+            <tr>
+              <td style="width: 50%; text-align: center; vertical-align: top;">
+                <p style="font-weight: bold;">XÁC NHẬN CỦA CHỈ HUY</p>
+                <p style="font-weight: bold; text-transform: uppercase;" id="xacNhanHeader">CÔNG AN XÃ</p>
+              </td>
+              <td style="width: 50%; text-align: center; vertical-align: top;">
+                <p style="font-weight: bold;">NGƯỜI LÀM ĐƠN</p>
+                <p style="margin-top: 55px; font-weight: bold;" id="outTenKy">..........................</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- PHẦN ĐỆM (đẩy footer xuống đáy trang A4) -->
+        <div class="pdf-spacer"></div>
+
+        <!-- PHẦN TÍNH PHÉP (Footer trang A4) -->
+        <div class="pdf-footer">
+          <hr style="border: none; border-top: 1px dashed #000; margin: 0 0 8px 0;">
+          <p style="font-weight: bold;">Phần tính thời gian nghỉ phép của CBCS <span id="outTenPhanDuoi">..........................</span></p>
+          <p>Tổng số ngày CBCS được nghỉ phép theo chế độ: <span id="outTongPhep">......</span> ngày</p>
+          <p>Tổng số ngày đã nghỉ trừ vào chế độ phép: <span id="outDaNghiDuoi">......</span> ngày</p>
+          <p>Tổng số ngày nghỉ phép còn lại: <span id="outConLai">......</span> ngày</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const officersData = <%- officersData %>;
+  
+  const select = document.getElementById('officerSelect');
+  officersData.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o._id;
+    opt.textContent = o.hoTen + ' - ' + o.chucVu;
+    select.appendChild(opt);
+  });
+
+  function updatePreview() {
+    const officerId = select.value;
+    const selectedOfficer = officersData.find(o => o._id === officerId);
+    
+    const today = new Date();
+    document.getElementById('outNgayIn').textContent = today.getDate().toString().padStart(2, '0');
+    document.getElementById('outThangIn').textContent = (today.getMonth() + 1).toString().padStart(2, '0');
+    document.getElementById('outNamIn').textContent = today.getFullYear();
+    document.getElementById('outNamPhep').textContent = today.getFullYear();
+    document.getElementById('outNamPhep2').textContent = today.getFullYear();
+
+    if (selectedOfficer) {
+      document.getElementById('outTen').textContent = selectedOfficer.hoTen;
+      document.getElementById('outChucVu').textContent = selectedOfficer.chucVu;
+      document.getElementById('outTenKy').textContent = selectedOfficer.hoTen;
+      document.getElementById('outTenPhanDuoi').textContent = selectedOfficer.hoTen;
+      
+      if (selectedOfficer.ngayNhapNgu) {
+        const d = new Date(selectedOfficer.ngayNhapNgu);
+        document.getElementById('outVaoNgay').textContent = (d.getMonth() + 1) + '/' + d.getFullYear();
+        
+        let years = today.getFullYear() - d.getFullYear();
+        let months = today.getMonth() - d.getMonth();
+        if (months < 0) { years--; months += 12; }
+        document.getElementById('outNamCongTac').textContent = years.toString().padStart(2, '0') + ' năm ' + months.toString().padStart(2, '0') + ' tháng';
+      } else {
+        document.getElementById('outVaoNgay').textContent = '...';
+        document.getElementById('outNamCongTac').textContent = '...';
+      }
+
+      document.getElementById('outNgayDaNghi').textContent = selectedOfficer.taken;
+      document.getElementById('outTongPhep').textContent = selectedOfficer.allowed;
+      document.getElementById('outDaNghiDuoi').textContent = selectedOfficer.taken;
+      document.getElementById('outConLai').textContent = selectedOfficer.remaining;
+    } else {
+      document.getElementById('outTen').textContent = '........................................';
+      document.getElementById('outChucVu').textContent = '...............';
+      document.getElementById('outVaoNgay').textContent = '....................';
+      document.getElementById('outNamCongTac').textContent = '....................';
+      document.getElementById('outNgayDaNghi').textContent = '......';
+      document.getElementById('outTenKy').textContent = '..........................';
+      document.getElementById('outTenPhanDuoi').textContent = '..........................';
+      document.getElementById('outTongPhep').textContent = '......';
+      document.getElementById('outDaNghiDuoi').textContent = '......';
+      document.getElementById('outConLai').textContent = '......';
+    }
+
+    const formatVnDate = (dString) => {
+      if(!dString) return '.../.../....';
+      const d = new Date(dString);
+      return d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getFullYear();
+    };
+
+    document.getElementById('outTuNgay').textContent = formatVnDate(document.getElementById('tuNgay').value);
+    document.getElementById('outDenNgay').textContent = formatVnDate(document.getElementById('denNgay').value);
+    
+    document.getElementById('outNoiNghi').textContent = document.getElementById('noiNghi').value || '......................................................................';
+    document.getElementById('outLyDo').textContent = document.getElementById('lyDo').value || '......................................................................';
+    
+    document.getElementById('xacNhanHeader').textContent = document.getElementById('nguoiKy').value;
+  }
+
+  document.getElementById('officerSelect').addEventListener('change', updatePreview);
+  document.getElementById('tuNgay').addEventListener('change', updatePreview);
+  document.getElementById('denNgay').addEventListener('change', updatePreview);
+  document.getElementById('noiNghi').addEventListener('input', updatePreview);
+  document.getElementById('lyDo').addEventListener('input', updatePreview);
+  document.getElementById('nguoiKy').addEventListener('change', updatePreview);
+
+  updatePreview();
+
+  document.getElementById('btnExport').addEventListener('click', function() {
+    const element = document.getElementById('pdfContent');
+    const officerName = document.getElementById('outTen').textContent.trim();
+    const fileName = 'Don_Nghi_Phep_' + (officerName !== '........................................' ? officerName : 'Mau') + '.pdf';
+    
+    const opt = {
+      margin:       [20, 30, 20, 20], // [top, left, bottom, right] mm
+      filename:     fileName,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all'] }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  });
+</script>
+
+<%- include('../partials/footer') %>

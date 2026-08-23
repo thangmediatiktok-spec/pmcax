@@ -1,0 +1,241 @@
+<%- include('../partials/header', { activeMenu: typeof activeMenu !== 'undefined' ? activeMenu : 'officers' }) %>
+<%- include('../partials/flash') %>
+
+<% function fmtDate(d) { return d ? new Date(d).toISOString().split('T')[0] : ''; } %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-user-edit text-warning me-2"></i>Chỉnh sửa: <%= officer.hoTen %></h5>
+  <a href="/officers/<%= officer._id %>" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<form action="/officers/<%= officer._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-id-card text-primary me-2"></i>Thông tin cơ bản</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Số hiệu CAND <span class="text-danger">*</span></label>
+              <input type="text" name="maSo" class="form-control" required value="<%= officer.maSo %>" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? '' : 'disabled' %>>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+              <input type="text" name="hoTen" class="form-control" required value="<%= officer.hoTen %>" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? '' : 'disabled' %>>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngày sinh <span class="text-danger">*</span></label>
+              <input type="date" name="ngaySinh" class="form-control" required value="<%= fmtDate(officer.ngaySinh) %>" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? '' : 'disabled' %>>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Số CCCD</label>
+              <input type="text" name="soCCCD" class="form-control" value="<%= officer.soCCCD || '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngày cấp CCCD</label>
+              <input type="date" name="ngayCapCCCD" class="form-control" value="<%= fmtDate(officer.ngayCapCCCD) %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Giới tính</label>
+              <select name="gioiTinh" class="form-select" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? '' : 'disabled' %>>
+                <option value="Nam" <%= officer.gioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
+                <option value="Nữ" <%= officer.gioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Số điện thoại</label>
+              <input type="tel" name="soDienThoai" class="form-control" value="<%= officer.soDienThoai || '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Quê quán</label>
+              <input type="text" name="queQuan" class="form-control" value="<%= officer.queQuan || '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email</label>
+              <input type="email" name="email" class="form-control" value="<%= officer.email || '' %>">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Địa chỉ thường trú</label>
+              <input type="text" name="diaChiThuongTru" class="form-control" value="<%= officer.diaChiThuongTru || '' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-briefcase text-success me-2"></i>Thông tin công tác</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Chức vụ <span class="text-danger">*</span></label>
+              <select name="chucVu" class="form-select" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? 'required' : 'disabled' %>>
+                <% ['Trưởng Công an xã','Phó Trưởng Công an xã','Cán bộ'].forEach(cv => { %>
+                  <option value="<%= cv %>" <%= officer.chucVu === cv ? 'selected' : '' %>><%= cv %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Cấp bậc</label>
+              <select name="capBac" class="form-select">
+                <option value="">-- Chọn cấp bậc --</option>
+                <% ranks.forEach(r => { %>
+                  <option value="<%= r %>" <%= officer.capBac === r ? 'selected' : '' %>>
+                    <%= r %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngày nhập ngũ <span class="text-danger">*</span></label>
+              <input type="date" name="ngayNhapNgu" class="form-control" value="<%= fmtDate(officer.ngayNhapNgu) %>" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? 'required' : 'disabled' %>>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Tổ công tác <span class="text-danger">*</span></label>
+              <select name="toCongTac" class="form-select" <%= (currentUser.role === 'admin' || currentUser.role === 'truong_cax') ? 'required' : 'disabled' %>>
+                <% teams.forEach(t => { %>
+                  <option value="<%= t._id %>" <%= officer.toCongTac && officer.toCongTac._id.toString() === t._id.toString() ? 'selected' : '' %>><%= t.ten %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Đảng viên</label>
+              <select name="dangVien" class="form-select">
+                <option value="false" <%= !officer.dangVien ? 'selected' : '' %>>Chưa vào Đảng</option>
+                <option value="true" <%= officer.dangVien ? 'selected' : '' %>>Đảng viên</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngày vào Đảng</label>
+              <input type="date" name="ngayVaoDang" class="form-control" value="<%= fmtDate(officer.ngayVaoDang) %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Đơn vị công tác</label>
+              <input type="text" name="donViCongTac" class="form-control" value="<%= officer.donViCongTac || '' %>">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Ngày lên hàm gần nhất - Cấp bậc gần nhất</label>
+              <input type="date" name="ngayNhanCapBac" class="form-control" value="<%= fmtDate(officer.ngayNhanCapBac) %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Chức danh</label>
+              <input type="text" name="chucDanh" class="form-control" value="<%= officer.chucDanh || '' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trình độ học vấn -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-graduation-cap text-warning me-2"></i>Trình độ học vấn</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Học vấn</label>
+              <select name="hocVan" class="form-select">
+                <option value="">-- Chọn --</option>
+                <% ['Tiểu học','THCS','THPT','Trung cấp','Cao đẳng','Đại học','Thạc sĩ','Tiến sĩ'].forEach(hv => { %>
+                  <option value="<%= hv %>" <%= officer.hocVan === hv ? 'selected' : '' %>><%= hv %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Chuyên ngành</label>
+              <input type="text" name="chuyenNganh" class="form-control" value="<%= officer.chuyenNganh || '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Nghiệp vụ CA</label>
+              <input type="text" name="nghiepVuCA" class="form-control" value="<%= officer.nghiepVuCA || '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Trường đào tạo CA</label>
+              <input type="text" name="truongDaoTaoCA" class="form-control" value="<%= officer.truongDaoTaoCA || '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Lý luận chính trị</label>
+              <select name="lyLuanChinhTri" class="form-select">
+                <option value="">-- Chọn --</option>
+                <% ['Sơ cấp','Trung cấp','Cao cấp','Cử nhân'].forEach(ll => { %>
+                  <option value="<%= ll %>" <%= officer.lyLuanChinhTri === ll ? 'selected' : '' %>><%= ll %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngoại ngữ</label>
+              <input type="text" name="ngoaiNgu" class="form-control" value="<%= officer.ngoaiNgu || '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Tin học</label>
+              <input type="text" name="tinHoc" class="form-control" value="<%= officer.tinHoc || '' %>">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Ghi chú</label>
+              <textarea name="ghiChu" class="form-control" rows="2"><%= officer.ghiChu || '' %></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quá trình công tác -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-history text-secondary me-2"></i>Quá trình công tác</h6>
+        </div>
+        <div class="card-body p-3">
+          <textarea name="quaTrinhCongTac" class="form-control" rows="4"><%= officer.quaTrinhCongTac || '' %></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-camera text-info me-2"></i>Ảnh đại diện</h6>
+        </div>
+        <div class="card-body p-3 text-center">
+          <div style="width:140px;height:160px;border-radius:8px;overflow:hidden;margin:0 auto 12px;background:#f8f9fa;border:2px dashed #dee2e6">
+            <% if (officer.anhDaiDien) { %>
+              <img id="previewImg" src="<%= officer.anhDaiDien %>" alt="" style="width:100%;height:100%;object-fit:cover">
+            <% } else { %>
+              <img id="previewImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+              <div id="previewPlaceholder" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <i class="fas fa-user fa-3x text-muted opacity-25"></i>
+                <p class="small text-muted mt-2 mb-0">Chưa có ảnh</p>
+              </div>
+            <% } %>
+          </div>
+          <input type="file" name="anhDaiDien" accept="image/*" class="form-control form-control-sm" onchange="previewImg(this)">
+          <small class="text-muted">Để trống nếu không thay đổi ảnh</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 mt-3">
+    <button type="submit" class="btn btn-warning px-4 fw-semibold"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+    <a href="/officers/<%= officer._id %>" class="btn btn-outline-secondary px-4">Hủy</a>
+  </div>
+</form>
+
+<script>
+function previewImg(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('previewImg');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      const ph = document.getElementById('previewPlaceholder');
+      if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,57 @@
+<%- include('../partials/header', { activeMenu: 'users' }) %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-user-edit text-warning me-2"></i>Chỉnh sửa tài khoản</h5>
+  <a href="/users" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:560px">
+  <div class="card-body p-4">
+    <form action="/users/<%= user._id %>?_method=PUT" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên đăng nhập</label>
+        <input type="text" name="username" class="form-control" required value="<%= user.username %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Mật khẩu mới</label>
+        <input type="password" name="password" class="form-control" placeholder="Để trống nếu không đổi" minlength="6">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Họ và tên</label>
+        <input type="text" name="hoTen" class="form-control" required value="<%= user.hoTen %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control" value="<%= user.email || '' %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Vai trò</label>
+        <select name="role" class="form-select">
+          <option value="cbcs" <%= user.role === 'cbcs' ? 'selected' : '' %>>Cán bộ chiến sĩ</option>
+          <option value="pho_cax" <%= user.role === 'pho_cax' ? 'selected' : '' %>>Phó Trưởng Công an xã</option>
+          <option value="truong_cax" <%= user.role === 'truong_cax' ? 'selected' : '' %>>Trưởng Công an xã</option>
+          <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin - Toàn quyền</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="trangThai" class="form-select">
+          <option value="true" <%= user.trangThai ? 'selected' : '' %>>Hoạt động</option>
+          <option value="false" <%= !user.trangThai ? 'selected' : '' %>>Đã khóa</option>
+        </select>
+      </div>
+      <div class="mb-4 form-check">
+        <input type="checkbox" name="canManageRoster" class="form-check-input" id="canManageRoster" <%= user.canManageRoster ? 'checked' : '' %>>
+        <label class="form-check-label fw-semibold" for="canManageRoster">Quyền xếp lịch trực</label>
+        <div class="form-text">Cho phép tài khoản này tạo và chỉnh sửa Lịch trực.</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-warning px-4"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+        <a href="/users" class="btn btn-outline-secondary px-4">Hủy</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

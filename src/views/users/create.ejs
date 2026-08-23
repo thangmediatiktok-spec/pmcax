@@ -1,0 +1,51 @@
+<%- include('../partials/header', { activeMenu: 'users' }) %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-user-plus text-danger me-2"></i>Thêm tài khoản mới</h5>
+  <a href="/users" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:560px">
+  <div class="card-body p-4">
+    <form action="/users" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+        <input type="text" name="username" class="form-control" required placeholder="vd: nguyenvana">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+        <input type="password" name="password" class="form-control" required placeholder="Tối thiểu 6 ký tự" minlength="6">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+        <input type="text" name="hoTen" class="form-control" required placeholder="Nguyễn Văn A">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control" placeholder="email@example.com">
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+        <select name="role" class="form-select" required>
+          <option value="cbcs">Cán bộ chiến sĩ</option>
+          <option value="pho_cax">Phó Trưởng Công an xã</option>
+          <option value="truong_cax">Trưởng Công an xã</option>
+          <option value="admin">Admin - Toàn quyền</option>
+        </select>
+        <div class="form-text">Các role ảnh hưởng đến quyền hạn và chức vụ khi khai báo hồ sơ.</div>
+      </div>
+      <div class="mb-4 form-check">
+        <input type="checkbox" name="canManageRoster" class="form-check-input" id="canManageRoster">
+        <label class="form-check-label fw-semibold" for="canManageRoster">Quyền xếp lịch trực</label>
+        <div class="form-text">Cho phép tài khoản này tạo và chỉnh sửa Lịch trực.</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger px-4"><i class="fas fa-save me-2"></i>Tạo tài khoản</button>
+        <a href="/users" class="btn btn-outline-secondary px-4">Hủy</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

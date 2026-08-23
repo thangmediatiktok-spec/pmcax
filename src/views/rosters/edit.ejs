@@ -1,0 +1,306 @@
+<%- include('../partials/header', { activeMenu: 'rosters' }) %>
+<%- include('../partials/flash') %>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<% 
+  const d1 = new Date(roster.weekStart).toLocaleDateString('vi-VN');
+  const d2 = new Date(roster.weekEnd).toLocaleDateString('vi-VN');
+  const daysOfWeek = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+
+  const commanders = officers.filter(o => o.chucVu && o.chucVu.toLowerCase().includes('trưởng'));
+  const normals = officers.filter(o => !o.chucVu || !o.chucVu.toLowerCase().includes('trưởng'));
+%>
+
+<style>
+  .dropzone {
+    min-height: 80px;
+    border: 2px dashed #dee2e6;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #f8f9fa;
+  }
+  .dropzone.dragover {
+    background-color: #e2e3e5;
+    border-color: #adb5bd;
+  }
+  .officer-card {
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    cursor: grab;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .officer-card:active {
+    cursor: grabbing;
+  }
+  .officer-card .name { font-weight: 600; }
+  .officer-card .role { font-size: 11px; color: #6c757d; }
+  
+  .commander-zone .officer-card { border-left: 3px solid #dc3545; }
+  .normal-zone .officer-card { border-left: 3px solid #0d6efd; }
+  
+  .officer-list-container {
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    position: sticky;
+    top: 70px;
+  }
+  
+  /* Remove button */
+  .officer-card .remove-btn {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .dropzone .officer-card { position: relative; }
+  .dropzone .officer-card:hover .remove-btn { display: block; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0"><i class="fas fa-edit text-warning me-2"></i>Cắt Lịch trực: Từ <%= d1 %> đến <%= d2 %></h5>
+  <div class="d-flex gap-2">
+    <form action="/rosters/<%= roster._id %>/auto-smart" method="POST" class="d-inline" onsubmit="return confirm('Thuật toán sẽ ghi đè lịch hiện tại. Chắc chắn cắt tự động?')">
+      <button type="submit" class="btn btn-primary btn-sm" title="Tự động cắt lịch đối chiếu tuần trước tránh trùng lặp">
+        <i class="fas fa-robot me-1"></i>Auto Thông Minh
+      </button>
+    </form>
+    <a href="/rosters/<%= roster._id %>" class="btn btn-outline-info btn-sm"><i class="fas fa-eye me-1"></i>Xem bảng</a>
+    <a href="/rosters" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Cột Trái: Bảng Lịch (75%) -->
+  <div class="col-lg-9">
+    <form id="rosterForm" action="/rosters/<%= roster._id %>?_method=PUT" method="POST">
+      <% roster.days.forEach((day, index) => { 
+          const dateObj = new Date(day.date);
+          const dateStr = `${daysOfWeek[dateObj.getDay()]} ngày ${dateObj.toLocaleDateString('vi-VN')}`;
+          
+          let lastWeekDay = null;
+          if (typeof lastWeekRoster !== 'undefined' && lastWeekRoster && lastWeekRoster.days[index]) {
+            lastWeekDay = lastWeekRoster.days[index];
+          }
+      %>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+          <span class="fw-bold text-primary"><i class="fas fa-calendar-day me-2"></i><%= dateStr %></span>
+          
+          <% if (lastWeekDay) { %>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#lastWeek_<%= index %>">
+              <i class="fas fa-history me-1"></i>Lịch tuần trước
+            </button>
+          <% } %>
+        </div>
+        
+        <!-- Collapse tuần trước -->
+        <% if (lastWeekDay) { %>
+        <div class="collapse" id="lastWeek_<%= index %>">
+          <div class="card-body bg-light border-bottom p-2" style="font-size:12px;">
+            <div class="row text-muted">
+              <div class="col-md-3"><strong>Chỉ huy:</strong> <%= lastWeekDay.trucChiHuy.map(o => o.hoTen).join(', ') || '-' %></div>
+              <div class="col-md-3"><strong>Ca Ngày:</strong> <%= lastWeekDay.trucBanNgay.map(o => o.hoTen).join(', ') || '-' %></div>
+              <div class="col-md-3"><strong>Ca Đêm:</strong> <%= lastWeekDay.trucBanDem.map(o => o.hoTen).join(', ') || '-' %></div>
+              <div class="col-md-3"><strong>Nghỉ/Khác:</strong> <%= lastWeekDay.ghiChuPhu || '-' %></div>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="card-body p-3">
+          <div class="row g-3">
+            <!-- Trực Chỉ Huy -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold small text-danger"><i class="fas fa-star me-1"></i>Trực chỉ huy</label>
+              <div class="dropzone commander-zone" id="zone-chihuy-<%= index %>" data-type="commander">
+                <% day.trucChiHuy.forEach(o => { %>
+                  <div class="officer-card" data-id="<%= o._id %>" data-type="commander">
+                    <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                    <span class="name"><%= o.hoTen %></span>
+                    <span class="role"><%= o.chucVu || o.capBac || 'Cán bộ' %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+            
+            <!-- Trực ban Ngày -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold small text-warning text-dark"><i class="fas fa-sun me-1"></i>Ca Ngày (7h-17h)</label>
+              <div class="dropzone normal-zone" id="zone-ngay-<%= index %>" data-type="normal">
+                <% day.trucBanNgay.forEach(o => { %>
+                  <div class="officer-card" data-id="<%= o._id %>" data-type="normal">
+                    <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                    <span class="name"><%= o.hoTen %></span>
+                    <span class="role"><%= o.chucVu || o.capBac || 'Cán bộ' %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+
+            <!-- Trực ban Đêm -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold small text-info text-dark"><i class="fas fa-moon me-1"></i>Ca Đêm (17h-7h)</label>
+              <div class="dropzone normal-zone" id="zone-dem-<%= index %>" data-type="normal">
+                <% day.trucBanDem.forEach(o => { %>
+                  <div class="officer-card" data-id="<%= o._id %>" data-type="normal">
+                    <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                    <span class="name"><%= o.hoTen %></span>
+                    <span class="role"><%= o.chucVu || o.capBac || 'Cán bộ' %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+            
+            <!-- Ghi chú phụ -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold small text-success"><i class="fas fa-clipboard me-1"></i>Nghỉ, Cơ động...</label>
+              <textarea name="ghiChuPhu_<%= index %>" class="form-control" rows="3" placeholder="Ví dụ: Đ/c A nghỉ trực ban..."><%= day.ghiChuPhu %></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+      
+      <div class="d-flex justify-content-center mt-4 mb-5">
+        <button type="submit" class="btn btn-warning px-5 py-2 fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Lưu Lịch Trực</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Cột Phải: Danh sách CBCS (25%) -->
+  <div class="col-lg-3">
+    <div class="card border-0 shadow-sm officer-list-container">
+      <div class="card-header bg-white fw-bold sticky-top border-bottom py-3">
+        <i class="fas fa-users me-2 text-primary"></i>Danh sách Cán bộ
+        <div class="small text-muted mt-1 fw-normal">Kéo thả tên vào bảng bên trái</div>
+      </div>
+      <div class="card-body p-2">
+        
+        <!-- Khối Chỉ huy -->
+        <h6 class="fw-bold text-danger mt-2 mb-2 px-1" style="font-size:12px;">CHỈ HUY CAX (<%= commanders.length %>)</h6>
+        <div class="source-zone mb-3" id="source-commanders" data-type="commander">
+          <% commanders.forEach(o => { %>
+            <div class="officer-card" data-id="<%= o._id %>" data-type="commander">
+              <span class="name"><%= o.hoTen %></span>
+              <span class="role"><%= o.chucVu %></span>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Khối Cán bộ -->
+        <h6 class="fw-bold text-primary mt-3 mb-2 px-1" style="font-size:12px;">CÁN BỘ CHIẾN SĨ (<%= normals.length %>)</h6>
+        <div class="source-zone mb-2" id="source-normals" data-type="normal">
+          <% normals.forEach(o => { %>
+            <div class="officer-card" data-id="<%= o._id %>" data-type="normal">
+              <span class="name"><%= o.hoTen %></span>
+              <span class="role"><%= o.capBac || 'Cán bộ' %></span>
+            </div>
+          <% }) %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  
+  // Clone config for source zones (Right column)
+  const sourceOptions = {
+    group: {
+      name: 'shared',
+      pull: 'clone',
+      put: false
+    },
+    sort: false,
+    animation: 150
+  };
+
+  // 1. Initialize Source Zones
+  new Sortable(document.getElementById('source-commanders'), sourceOptions);
+  new Sortable(document.getElementById('source-normals'), sourceOptions);
+
+  // 2. Initialize Target Dropzones (Left column)
+  const dropzones = document.querySelectorAll('.dropzone');
+  dropzones.forEach(zone => {
+    new Sortable(zone, {
+      group: 'shared',
+      animation: 150,
+      onAdd: function (evt) {
+        // Validation: Only allow commander in commander-zone, normal in normal-zone
+        const itemType = evt.item.dataset.type;
+        const zoneType = zone.dataset.type;
+        
+        if (zoneType === 'commander' && itemType !== 'commander') {
+          evt.item.parentNode.removeChild(evt.item);
+          toastr.warning('Chỉ được xếp Trưởng/Phó CAX vào trực chỉ huy!');
+          return;
+        }
+        
+        // Remove duplicates in the SAME zone
+        const id = evt.item.dataset.id;
+        const siblings = zone.querySelectorAll(`.officer-card[data-id="${id}"]`);
+        if (siblings.length > 1) {
+          evt.item.parentNode.removeChild(evt.item);
+          toastr.warning('Cán bộ này đã có trong ca trực!');
+          return;
+        }
+
+        // Setup remove button on cloned item
+        const removeBtn = document.createElement('i');
+        removeBtn.className = 'fas fa-times remove-btn';
+        removeBtn.onclick = function() { this.parentElement.remove(); };
+        evt.item.insertBefore(removeBtn, evt.item.firstChild);
+      }
+    });
+  });
+
+  // 3. Form Submit interception
+  document.getElementById('rosterForm').addEventListener('submit', function(e) {
+    // Generate hidden inputs for all 7 days
+    for (let i = 0; i < 7; i++) {
+      
+      const chiHuyZone = document.getElementById('zone-chihuy-' + i);
+      chiHuyZone.querySelectorAll('.officer-card').forEach(card => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `trucChiHuy_${i}`;
+        input.value = card.dataset.id;
+        this.appendChild(input);
+      });
+
+      const ngayZone = document.getElementById('zone-ngay-' + i);
+      ngayZone.querySelectorAll('.officer-card').forEach(card => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `trucBanNgay_${i}`;
+        input.value = card.dataset.id;
+        this.appendChild(input);
+      });
+
+      const demZone = document.getElementById('zone-dem-' + i);
+      demZone.querySelectorAll('.officer-card').forEach(card => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `trucBanDem_${i}`;
+        input.value = card.dataset.id;
+        this.appendChild(input);
+      });
+    }
+  });
+
+});
+</script>
+
+<%- include('../partials/footer') %>

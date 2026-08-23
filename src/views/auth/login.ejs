@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - PMCAX</title>
+  <link rel="icon" href="/images/logo.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: url('/images/trong-dong.png') center/100vmin no-repeat fixed, linear-gradient(135deg, #1a2235 0%, #2d3f5e 100%); background-blend-mode: soft-light; min-height: 100vh; }
+    .login-card { border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .badge-logo { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .form-control:focus { border-color: #e63946; box-shadow: 0 0 0 .2rem rgba(230,57,70,.25); }
+    .btn-login { background: linear-gradient(135deg,#e63946,#c1121f); border: none; padding: 12px; font-weight: 600; letter-spacing: .5px; }
+    .btn-login:hover { background: linear-gradient(135deg,#c1121f,#9d0208); }
+  </style>
+</head>
+<body class="d-flex align-items-center justify-content-center">
+  <div class="container" style="max-width:420px">
+    <div class="card login-card border-0">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <div class="badge-logo">
+            <img src="/images/logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+          </div>
+          <h4 class="fw-bold text-dark mb-1">CÔNG AN XÃ<br>CHƯ A THAI</h4>
+          <p class="text-muted small mb-0">Hệ thống quản lý cán bộ chiến sĩ</p>
+        </div>
+
+        <% if (error && error.length > 0) { %>
+          <div class="alert alert-danger py-2">
+            <i class="fas fa-exclamation-circle me-2"></i><%= error[0] %>
+          </div>
+        <% } %>
+        <% if (success && success.length > 0) { %>
+          <div class="alert alert-success py-2">
+            <i class="fas fa-check-circle me-2"></i><%= success[0] %>
+          </div>
+        <% } %>
+
+        <form action="/login" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Tên đăng nhập</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
+              <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required autofocus>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">Mật khẩu</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
+              <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Nhập mật khẩu" required>
+              <button type="button" class="btn btn-light border" onclick="togglePwd()">
+                <i class="fas fa-eye text-muted" id="eyeIcon"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-login btn-danger w-100 text-white">
+            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+          </button>
+        </form>
+
+        <p class="text-center text-muted small mt-4 mb-0">
+          <i class="fas fa-lock me-1"></i>Hệ thống được bảo mật - Chỉ dành cho cán bộ được cấp quyền
+        </p>
+      </div>
+    </div>
+    <p class="text-center text-white-50 small mt-3">© 2024 Công an xã Chư A Thai - PMCAX v1.0</p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function togglePwd() {
+      const inp = document.getElementById('passwordInput');
+      const icon = document.getElementById('eyeIcon');
+      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fas fa-eye-slash text-muted'; }
+      else { inp.type = 'password'; icon.className = 'fas fa-eye text-muted'; }
+    }
+  </script>
+</body>
+</html>

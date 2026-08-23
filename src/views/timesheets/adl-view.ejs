@@ -1,0 +1,190 @@
+<% if (typeof layout === 'undefined' || layout !== false) { %>
+<%- include('../partials/header') %>
+<%- include('../partials/flash') %>
+<% } else { %>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+<% } %>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1 text-primary">
+      <i class="fas fa-eye me-2"></i>Xem Bảng Ăn định lượng
+    </h4>
+    <div class="text-muted small">Cán bộ: <%= officer.hoTen %> - Tháng <%= timesheet.month %>/<%= timesheet.year %></div>
+  </div>
+  <div>
+    <% if (typeof layout === 'undefined' || layout !== false) { %>
+    <a href="/timesheets/adl-summary" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+    <% } %>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body bg-light rounded">
+    <div class="row align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold small text-muted text-uppercase mb-1">Chức danh Cán bộ (*)</label>
+        <input type="text" id="exportTitle" class="form-control" value="<%= officer.chucVu || 'Cán bộ' %>">
+      </div>
+      <div class="col-md-5">
+        <label class="form-label fw-semibold small text-muted text-uppercase mb-1">Mức hưởng định lượng (**)</label>
+        <input type="text" id="exportLevel" class="form-control" value="Mức IV">
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-success w-100 fw-bold shadow-sm" onclick="exportToExcel()">
+          <i class="fas fa-file-excel me-2"></i>XUẤT EXCEL
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <% if (adlRecords.length === 0) { %>
+      <div class="text-center text-muted py-5">
+        <i class="fas fa-file-excel fa-3x mb-3 text-light"></i>
+        <p class="mb-0">Không có ngày ăn định lượng nào trong tháng này.</p>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-0" id="adlTable">
+          <thead class="table-light position-sticky top-0 shadow-sm" style="z-index: 1;">
+            <tr class="text-center">
+              <th style="width:100px;">Thời gian</th>
+              <th style="width:150px;">Chức danh (*)</th>
+              <th style="width:100px;">Mức (**)</th>
+              <th>Kế hoạch công tác</th>
+              <th>Kết quả công tác</th>
+              <th style="width:200px;">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+              const noteText = "Đây là thôn thuộc khu vực miền núi, có đông đồng bào dân tộc thiểu số sinh sống; điều kiện giao thông đi lại còn nhiều khó khăn, trình độ dân trí không đồng đều, đời sống và điều kiện kinh tế của Nhân dân còn hạn chế.";
+            %>
+            <% adlRecords.forEach(r => { %>
+              <tr data-day="<%= r.day %>" data-plan="<%= r.adlPlan || '' %>" data-result="<%= r.adlResult || '' %>">
+                <td class="text-center fw-bold">
+                  <%= String(r.day).padStart(2,'0') %>/<%= String(timesheet.month).padStart(2,'0') %>/<%= timesheet.year %>
+                </td>
+                <td class="text-center small"><span class="dynamic-title"><%= officer.chucVu || 'Cán bộ' %></span></td>
+                <td class="text-center small"><span class="dynamic-level">Mức IV</span></td>
+                <td>
+                  <span class="small text-break"><%= r.adlPlan || '' %></span>
+                </td>
+                <td>
+                  <span class="small text-break"><%= r.adlResult || '' %></span>
+                </td>
+                <td>
+                  <span class="small text-muted" style="font-size: 0.75rem;"><%= noteText %></span>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  // Update table cells dynamically when inputs change
+  document.getElementById('exportTitle').addEventListener('input', function(e) {
+    document.querySelectorAll('.dynamic-title').forEach(el => el.innerText = e.target.value);
+  });
+  document.getElementById('exportLevel').addEventListener('input', function(e) {
+    document.querySelectorAll('.dynamic-level').forEach(el => el.innerText = e.target.value);
+  });
+
+  // EXCEL EXPORT SCRIPT
+  async function exportToExcel() {
+    const tableRows = document.querySelectorAll('#adlTable tbody tr');
+    if (tableRows.length === 0) {
+      alert("Không có dữ liệu để xuất!");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('ThongKe');
+    
+    const month = '<%= String(timesheet.month).padStart(2, "0") %>';
+    const year = '<%= timesheet.year %>';
+    const name = '<%= officer.hoTen %>';
+    const pos = document.getElementById('exportTitle').value;
+    const lv = document.getElementById('exportLevel').value;
+
+    worksheet.mergeCells('A1:C1'); worksheet.getCell('A1').value = 'CÔNG AN TỈNH GIA LAI';
+    worksheet.mergeCells('A2:C2'); worksheet.getCell('A2').value = 'CÔNG AN XÃ CHƯ A THAI';
+    worksheet.mergeCells('D1:F1'); worksheet.getCell('D1').value = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM';
+    worksheet.mergeCells('D2:F2'); worksheet.getCell('D2').value = 'Độc lập - Tự do - Hạnh phúc';
+    worksheet.mergeCells('A4:F4'); worksheet.getCell('A4').value = 'BẢNG THỐNG KÊ NỘI DUNG CÔNG VIỆC ĐỀ NGHỊ HƯỞNG ĐỊNH LƯỢNG ĂN';
+    worksheet.mergeCells('A5:F5'); worksheet.getCell('A5').value = `THÁNG ${month} NĂM ${year}`;
+    worksheet.mergeCells('A6:F6'); worksheet.getCell('A6').value = `Của đồng chí: ${name}`;
+
+    ['A1','A2','D1','D2','A4','A5','A6'].forEach(c => {
+        worksheet.getCell(c).alignment = { horizontal: 'center' };
+        worksheet.getCell(c).font = { name: 'Times New Roman', bold: true, size: 12 };
+    });
+
+    const headerRow = worksheet.getRow(8);
+    headerRow.values = ['Thời gian', 'Chức danh (*)', 'Mức (**)', 'Kế hoạch công tác', 'Kết quả công tác', 'Ghi chú'];
+    headerRow.eachCell(c => {
+        c.font = { name: 'Times New Roman', bold: true };
+        c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        c.fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FFF2F2F2'} };
+    });
+
+    let curr = 9;
+    const n = "Đây là thôn thuộc khu vực miền núi, có đông đồng bào dân tộc thiểu số sinh sống; điều kiện giao thông đi lại còn nhiều khó khăn, trình độ dân trí không đồng đều, đời sống và điều kiện kinh tế của Nhân dân còn hạn chế.";
+
+    tableRows.forEach(tr => {
+      const day = String(tr.getAttribute('data-day')).padStart(2, '0');
+      const dateStr = `${day}/${month}/${year}`;
+      const p = tr.getAttribute('data-plan');
+      const r = tr.getAttribute('data-result');
+
+      const row = worksheet.getRow(curr);
+      row.values = [dateStr, pos, lv, p, r, n];
+      row.eachCell(c => {
+          c.font = { name: 'Times New Roman', size: 11 };
+          c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+          c.alignment = { wrapText: true, vertical: 'middle', horizontal: (c.address.startsWith('A') || c.address.startsWith('B') || c.address.startsWith('C')) ? 'center' : 'left' };
+      });
+      row.height = 105;
+      curr++;
+    });
+
+    let sigRow = curr + 1;
+    worksheet.mergeCells(`A${sigRow}:F${sigRow}`);
+    worksheet.getCell(`A${sigRow}`).value = 'Tôi xin cam đoan những thông tin trên là đúng và đúng với số kế hoạch công tác tuần. Nếu có sai sót tôi xin chịu hoàn toàn trách nhiệm.';
+    worksheet.getCell(`A${sigRow}`).font = { name: 'Times New Roman', italic: true };
+
+    sigRow += 5;
+    const s = worksheet.getRow(sigRow);
+    s.values = ['', 'NGƯỜI LẬP', '', 'LÃNH ĐẠO ĐỘI/TỔ', '', 'LÃNH ĐẠO ĐƠN VỊ'];
+    s.eachCell(c => { if(c.value) { c.font = { name: 'Times New Roman', bold: true }; c.alignment = { horizontal: 'center' }; } });
+
+    worksheet.getColumn(1).width = 12;
+    worksheet.getColumn(2).width = 25;
+    worksheet.getColumn(3).width = 10;
+    worksheet.getColumn(4).width = 35;
+    worksheet.getColumn(5).width = 40;
+    worksheet.getColumn(6).width = 35;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `BangKe_DLAN_${name.replace(/\s/g,'_')}.xlsx`);
+  }
+</script>
+
+<% if (typeof layout === 'undefined' || layout !== false) { %>
+<%- include('../partials/footer') %>
+<% } else { %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<% } %>

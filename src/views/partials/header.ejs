@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'PMCAX' %></title>
+  <link rel="icon" href="/images/logo.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="wrapper d-flex" style="height:100vh; overflow: hidden;">
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar d-flex flex-column" style="width:250px;height:100vh;position:sticky;top:0;background:url('/images/trong-dong.png') center/cover no-repeat,#1a2235;background-blend-mode:soft-light;flex-shrink:0;transition:width .3s;z-index:1000">
+    <div class="p-3 border-bottom border-secondary">
+      <div class="d-flex align-items-center gap-2">
+        <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <img src="/images/logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <div class="sidebar-text">
+          <div class="fw-bold text-warning" style="font-size:13px;line-height:1.2">CÔNG AN XÃ<br>CHƯ A THAI</div>
+          <div style="font-size:10px;color:#aebdca">Quản lý CBCS</div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav flex-column p-2 mt-1 flex-grow-1" style="overflow-y: auto; overflow-x: hidden;">
+      <li class="sidebar-section-label sidebar-text px-2 py-1" style="font-size:10px;color:#8899aa;text-transform:uppercase;letter-spacing:1px;font-weight:600">Menu chính</li>
+      <li class="nav-item">
+        <a href="/dashboard" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'dashboard' ? 'active' : '' %>">
+          <i class="fas fa-tachometer-alt" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+      </li>
+      <% if (currentUser && currentUser.officerProfile) { %>
+      <li class="nav-item">
+        <a href="#personalSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'text-white' : '' %>" style="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'background: rgba(255,255,255,0.05);' : '' %>">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-user-shield" style="width:18px;text-align:center"></i>
+            <span class="sidebar-text">Cá nhân</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-text" style="font-size: 10px; transition: transform 0.3s;"></i>
+        </a>
+        <ul class="collapse list-unstyled <%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'show' : '' %>" id="personalSubmenu" style="padding-left: 24px;">
+          <li>
+            <a href="/officers/<%= currentUser.officerProfile %>" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'personal_profile' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-id-card me-2" style="font-size: 10px;"></i> Hồ sơ của tôi
+            </a>
+          </li>
+          <li>
+            <a href="/officers/<%= currentUser.officerProfile %>/documents" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'personal_documents' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-file-pdf me-2" style="font-size: 10px;"></i> Tài liệu đính kèm
+            </a>
+          </li>
+        </ul>
+      </li>
+      <% } %>
+
+      <% if (currentUser && currentUser.role !== 'cbcs') { %>
+      <li class="nav-item">
+        <a href="/officers" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'officers' ? 'active' : '' %>">
+          <i class="fas fa-users" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Cán bộ chiến sĩ</span>
+        </a>
+      </li>
+      <% } %>
+      <li class="nav-item">
+        <a href="/rosters" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'rosters' ? 'active' : '' %>">
+          <i class="fas fa-calendar-alt" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Lịch trực</span>
+        </a>
+      </li>
+      <% if (currentUser && currentUser.role === 'cbcs' && currentUser.officerProfile) { %>
+      <li class="nav-item">
+        <a href="/leaves/<%= currentUser.officerProfile %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'leaves' ? 'active' : '' %>">
+          <i class="fas fa-calendar-check" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Nghỉ phép của tôi</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/timesheets/me" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'my_timesheet' || (locals.activeMenu || '').startsWith('timesheet') ? 'active' : '' %>">
+          <i class="fas fa-clipboard-list" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Chấm công của tôi</span>
+        </a>
+      </li>
+      <% } else if (currentUser && currentUser.role !== 'cbcs') { %>
+      <li class="nav-item">
+        <a href="#leavesSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '').startsWith('leaves') ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '').startsWith('leaves') ? 'text-white' : '' %>" style="<%= (locals.activeMenu || '').startsWith('leaves') ? 'background: rgba(255,255,255,0.05);' : '' %>">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-calendar-check" style="width:18px;text-align:center"></i>
+            <span class="sidebar-text">Quản lý Nghỉ phép</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-text" style="font-size: 10px; transition: transform 0.3s;"></i>
+        </a>
+        <ul class="collapse list-unstyled <%= (locals.activeMenu || '').startsWith('leaves') ? 'show' : '' %>" id="leavesSubmenu" style="padding-left: 24px;">
+          <li>
+            <a href="/leaves/taken" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_taken' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-user-check me-2" style="font-size: 10px;"></i> Đã nghỉ phép
+            </a>
+          </li>
+          <li>
+            <a href="/leaves/not-taken" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_not_taken' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-user-times me-2" style="font-size: 10px;"></i> Chưa nghỉ phép
+            </a>
+          </li>
+          <li>
+            <a href="/leaves/print-form" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_print' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-file-pdf me-2" style="font-size: 10px;"></i> Tạo đơn (PDF)
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item">
+        <a href="/timesheets/me" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'my_timesheet' ? 'active' : '' %>">
+          <i class="fas fa-user-clock" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Chấm công của tôi</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/timesheets" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'timesheets' ? 'active' : '' %>">
+          <i class="fas fa-clipboard-list" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Theo dõi chấm công tổ</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/timesheets/adl-summary" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'adl-summary' ? 'active text-primary bg-light' : '' %>">
+          <i class="fas fa-layer-group" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Tổng hợp ADL</span>
+        </a>
+      </li>
+      <% } %>
+
+      <% if (currentUser && currentUser.role === 'admin') { %>
+      <li class="sidebar-section-label sidebar-text px-2 py-1 mt-2" style="font-size:10px;color:#8899aa;text-transform:uppercase;letter-spacing:1px;font-weight:600">Quản trị</li>
+      <li class="nav-item">
+        <a href="/users" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'users' ? 'active' : '' %>">
+          <i class="fas fa-users-cog" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Tài khoản</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/teams" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'teams' ? 'active' : '' %>">
+          <i class="fas fa-people-group" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Tổ công tác</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/adl-tasks" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'adl-tasks' ? 'active' : '' %>">
+          <i class="fas fa-list-check" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Công việc ADL</span>
+        </a>
+      </li>
+      <% } %>
+    </ul>
+
+    <div class="p-3 border-top sidebar-text text-center" style="border-color: rgba(255,255,255,0.08) !important; background: rgba(0,0,0,0.2);">
+      <div class="fw-bold mb-1" style="color: #e2e8f0; font-size: 10.5px; letter-spacing: 0.2px;">
+        &copy; 2026 <span class="text-warning">CAX CHƯ A THAI</span>
+      </div>
+      <div style="color: #94a3b8; font-size: 10px; font-family: monospace; letter-spacing: 0.5px;">
+        Phiên bản: 1.1.114923082026
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- Main Content -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden" style="min-width: 0;">
+    <nav class="navbar navbar-light bg-white border-bottom px-3" style="min-height:56px; flex-shrink: 0;">
+      <button class="btn btn-sm" id="sidebarToggle" style="color:#555">
+        <i class="fas fa-bars"></i>
+      </button>
+      
+      <!-- Mobile Brand (Visible only on mobile) -->
+      <div class="d-flex d-md-none align-items-center gap-2 ms-2">
+        <img src="/images/logo.png" alt="Logo" style="height:34px;width:34px;object-fit:contain;">
+        <div style="line-height:1.15">
+          <div class="fw-bold" style="font-size:11px;color:#1a2235">CÔNG AN XÃ</div>
+          <div class="fw-bold" style="font-size:13px;color:#d62839">CHƯ A THAI</div>
+        </div>
+      </div>
+
+      <div class="ms-auto d-none d-md-flex align-items-center gap-2 gap-sm-3">
+        <span style="font-size:13px;color:#888" class="d-none d-sm-inline"><i class="fas fa-clock me-1"></i><span id="clock"></span></span>
+        
+        <div class="dropdown">
+          <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="color:#273142;">
+            <% if (typeof currentUser !== 'undefined' && currentUser.anhDaiDien) { %>
+              <img src="<%= currentUser.anhDaiDien %>" alt="Avatar" style="width:34px;height:34px;border-radius:50%;object-fit:cover;margin-right:8px;border:1px solid #e2e8f0;">
+            <% } else { %>
+              <div style="width:34px;height:34px;background:linear-gradient(135deg,#e63946,#c1121f);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:bold;margin-right:8px;">
+                <%= (typeof currentUser !== 'undefined' && currentUser.hoTen) ? currentUser.hoTen.charAt(0) : 'U' %>
+              </div>
+            <% } %>
+            <div class="d-none d-md-block text-start" style="line-height:1.2; padding-right:4px;">
+              <div class="fw-bold" style="font-size:13px; color:#1a2235;">
+                <%= typeof currentUser !== 'undefined' ? ((currentUser.capBac ? currentUser.capBac + ' ' : '') + currentUser.hoTen) : '' %>
+              </div>
+              <div class="text-muted" style="font-size:11px; font-weight:500;">
+                <%= (typeof currentUser !== 'undefined' && currentUser.maSo) ? currentUser.maSo : (typeof currentUser !== 'undefined' ? currentUser.role.toUpperCase() : '') %>
+              </div>
+            </div>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width:220px; border-radius:12px; margin-top:10px;">
+            <li class="d-md-none">
+              <div class="px-3 py-2 border-bottom mb-2 text-center">
+                <div class="fw-bold" style="font-size:14px; color:#1a2235;">
+                  <%= typeof currentUser !== 'undefined' ? ((currentUser.capBac ? currentUser.capBac + ' ' : '') + currentUser.hoTen) : '' %>
+                </div>
+                <div class="text-muted small">
+                  <%= (typeof currentUser !== 'undefined' && currentUser.maSo) ? currentUser.maSo : (typeof currentUser !== 'undefined' ? currentUser.role.toUpperCase() : '') %>
+                </div>
+              </div>
+            </li>
+            <% if (typeof currentUser !== 'undefined' && currentUser.officerProfile) { %>
+            <li>
+              <a class="dropdown-item py-2 d-flex align-items-center" href="/officers/<%= currentUser.officerProfile %>">
+                <i class="fas fa-id-card text-secondary me-3" style="width:16px;text-align:center;"></i>Hồ sơ của tôi
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <% } %>
+            <li>
+              <a class="dropdown-item py-2 d-flex align-items-center text-danger fw-medium" href="/logout">
+                <i class="fas fa-sign-out-alt me-3" style="width:16px;text-align:center;"></i>Đăng xuất
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="p-4 overflow-auto flex-grow-1">

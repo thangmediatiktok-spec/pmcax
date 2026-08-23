@@ -1,0 +1,292 @@
+<%- include('../partials/header', { activeMenu: 'dashboard' }) %>
+<%- include('../partials/flash') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<!-- Stats Cards -->
+<% if (typeof missingFieldsStatus !== 'undefined' && missingFieldsStatus && missingFieldsStatus.count > 0) { %>
+<div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm border-0" role="alert" style="background-color: #fff3cd; color: #856404;">
+  <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+  <div>
+    <h6 class="alert-heading fw-bold mb-1">Cần hoàn thiện hồ sơ cá nhân</h6>
+    <p class="mb-0 small">Hồ sơ của bạn hiện còn <strong><%= missingFieldsStatus.count %></strong> trường thông tin chưa được cập nhật. Vui lòng bổ sung đầy đủ thông tin để đảm bảo quyền lợi và đồng bộ dữ liệu hệ thống.</p>
+  </div>
+  <a href="/officers/<%= missingFieldsStatus.officerId %>/edit" class="btn btn-warning ms-auto fw-medium shadow-sm">Cập nhật ngay</a>
+</div>
+
+<!-- Modal Nhắc nhở cập nhật thông tin -->
+<div class="modal fade" id="missingFieldsModal" tabindex="-1" aria-labelledby="missingFieldsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning text-dark border-0">
+        <h5 class="modal-title fw-bold" id="missingFieldsModalLabel"><i class="fas fa-bell me-2"></i>Thông báo cập nhật hồ sơ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <div class="mb-3">
+          <i class="fas fa-user-edit text-warning" style="font-size: 48px;"></i>
+        </div>
+        <h5 class="fw-semibold">Bạn còn thiếu <strong><%= missingFieldsStatus.count %></strong> trường thông tin!</h5>
+        <p class="text-muted small mt-2 mb-0">Hồ sơ cá nhân của bạn chưa được cập nhật đầy đủ. Vui lòng dành chút thời gian để hoàn thiện hồ sơ nhằm đảm bảo quyền lợi và tính chính xác của dữ liệu hệ thống.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center bg-light">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSnoozeModal"><i class="fas fa-clock me-1"></i>Tắt trong 1 giờ</button>
+        <a href="/officers/<%= missingFieldsStatus.officerId %>/edit" class="btn btn-warning fw-medium"><i class="fas fa-edit me-1"></i>Cập nhật ngay</a>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 p-3">
+        <div style="width:48px;height:48px;background:rgba(67, 97, 238, 0.1);color:#4361ee;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-user-shield" style="font-size:20px"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="font-size:24px;line-height:1;margin-bottom:4px"><%= totalOfficers %></div>
+          <div class="text-muted" style="font-size:12px">Tổng số CBCS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 p-3">
+        <div style="width:48px;height:48px;background:rgba(255, 159, 28, 0.1);color:#ff9f1c;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-star" style="font-size:20px"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="font-size:24px;line-height:1;margin-bottom:4px"><%= banChiHuyCount %></div>
+          <div class="text-muted" style="font-size:12px">Ban Chỉ Huy CAX</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 p-3">
+        <div style="width:48px;height:48px;background:rgba(45, 198, 83, 0.1);color:#2dc653;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-flag" style="font-size:20px"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="font-size:24px;line-height:1;margin-bottom:4px"><%= dangVienCount %></div>
+          <div class="text-muted" style="font-size:12px">Đảng Viên</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 p-3">
+        <div style="width:48px;height:48px;background:rgba(58, 12, 163, 0.1);color:#3a0ca3;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-graduation-cap" style="font-size:20px"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="font-size:24px;line-height:1;margin-bottom:4px"><%= daiHocCount %></div>
+          <div class="text-muted" style="font-size:12px">Trình độ Đại Học+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold" style="font-size:14px"><i class="fas fa-chart-bar text-primary me-2"></i>Cơ Cấu Cấp Bậc CAND</h6>
+      </div>
+      <div class="card-body p-3">
+        <canvas id="capBacChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold" style="font-size:14px"><i class="fas fa-users-viewfinder text-success me-2"></i>Phân Bổ Quân Số Theo Tổ / Đơn Vị</h6>
+      </div>
+      <div class="card-body p-3">
+        <canvas id="toCongTacChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold" style="font-size:14px"><i class="fas fa-chart-pie text-danger me-2"></i>Phân Bổ Độ Tuổi</h6>
+      </div>
+      <div class="card-body p-3">
+        <canvas id="doTuoiChart" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold" style="font-size:14px"><i class="fas fa-book text-info me-2"></i>Trình Độ Học Vấn</h6>
+      </div>
+      <div class="card-body p-3 d-flex justify-content-center align-items-center">
+        <div style="width: 100%; max-width: 350px;">
+          <canvas id="hocVanChart" style="max-height: 250px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chartsData = <%- JSON.stringify(charts) %>;
+
+  Chart.register(ChartDataLabels);
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = "#6c757d";
+  Chart.defaults.scale.grid.color = "rgba(0,0,0,0.05)";
+
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        color: '#495057',
+        font: { weight: 'bold' },
+        formatter: (value) => value > 0 ? value : ''
+      }
+    }
+  };
+
+  // Cấp Bậc
+  new Chart(document.getElementById('capBacChart'), {
+    type: 'bar',
+    data: {
+      labels: chartsData.capBac.labels,
+      datasets: [{
+        data: chartsData.capBac.data,
+        backgroundColor: '#4361ee',
+        borderRadius: 4,
+        barThickness: 20
+      }]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Tổ Công Tác
+  new Chart(document.getElementById('toCongTacChart'), {
+    type: 'bar',
+    data: {
+      labels: chartsData.toCongTac.labels,
+      datasets: [{
+        data: chartsData.toCongTac.data,
+        backgroundColor: '#2dc653',
+        borderRadius: 4,
+        barThickness: 30
+      }]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Độ Tuổi
+  new Chart(document.getElementById('doTuoiChart'), {
+    type: 'bar',
+    data: {
+      labels: chartsData.doTuoi.labels,
+      datasets: [{
+        data: chartsData.doTuoi.data,
+        backgroundColor: '#f72585',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Học Vấn (Donut)
+  new Chart(document.getElementById('hocVanChart'), {
+    type: 'doughnut',
+    data: {
+      labels: chartsData.hocVan.labels,
+      datasets: [{
+        data: chartsData.hocVan.data,
+        backgroundColor: ['#00b4d8', '#4361ee', '#fca311', '#e63946', '#2dc653', '#7209b7'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { usePointStyle: true, boxWidth: 8 }
+        },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold' },
+          formatter: (value) => value > 0 ? value : ''
+        }
+      }
+    }
+  });
+
+  // Modal nhắc nhở cập nhật thông tin
+  document.addEventListener("DOMContentLoaded", function() {
+    const missingFieldsModalEl = document.getElementById('missingFieldsModal');
+    if (missingFieldsModalEl) {
+      const snoozeKey = 'snooze_missing_fields_' + '<%= typeof missingFieldsStatus !== "undefined" && missingFieldsStatus ? missingFieldsStatus.officerId : "" %>';
+      const snoozedUntil = localStorage.getItem(snoozeKey);
+      const now = new Date().getTime();
+
+      // Nếu chưa có lịch sử snooze hoặc đã hết 1 giờ (3600000 ms)
+      if (!snoozedUntil || now > parseInt(snoozedUntil)) {
+        const missingFieldsModal = new bootstrap.Modal(missingFieldsModalEl, {
+          backdrop: 'static'
+        });
+        missingFieldsModal.show();
+      }
+
+      const btnSnooze = document.getElementById('btnSnoozeModal');
+      if (btnSnooze) {
+        btnSnooze.addEventListener('click', function() {
+          const oneHourLater = now + (60 * 60 * 1000);
+          localStorage.setItem(snoozeKey, oneHourLater.toString());
+          const modalInstance = bootstrap.Modal.getInstance(missingFieldsModalEl);
+          modalInstance.hide();
+        });
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

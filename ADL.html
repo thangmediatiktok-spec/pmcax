@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Thống kê Công việc - CAX Chư A Thai</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    
+    <style>
+    :root {
+        --ca-red: #b20000;
+        --ca-gold: #ffcc00;
+        --ca-dark: #1a1a1b;
+        --ca-bg: #f4f4f4;
+    }
+
+    body { font-family: "Times New Roman", Times, serif; margin: 0; display: flex; height: 100vh; background: var(--ca-bg); color: #333; }
+    
+    .sidebar { width: 340px; background: var(--ca-dark); display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.3); border-right: 3px solid var(--ca-red); }
+    .sidebar-header { padding: 25px; background: var(--ca-red); text-align: center; border-bottom: 2px solid var(--ca-gold); }
+    .sidebar-header h3 { margin: 0; color: var(--ca-gold); font-size: 1.4rem; text-shadow: 1px 1px 2px #000; letter-spacing: 1px; }
+    
+    .sidebar-content { padding: 20px; overflow-y: auto; flex: 1; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: #ccc; font-weight: bold; text-transform: uppercase; }
+    
+    input, textarea { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #444; background: #2c2c2e; color: #fff; box-sizing: border-box; font-family: "Times New Roman"; }
+    input:focus, textarea:focus { border-color: var(--ca-gold); outline: none; }
+
+    .user-item { background: #3a3a3c; padding: 14px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px; border-left: 5px solid #555; transition: 0.3s; color: #eee; }
+    .user-item:hover { background: #48484a; border-left-color: #999; }
+    .user-item.active { background: #4a0000; border-left-color: var(--ca-gold); color: var(--ca-gold); font-weight: bold; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+
+    .btn-excel { width: 100%; padding: 15px; background: linear-gradient(180deg, #d30000 0%, #8b0000 100%); color: white; border: 1px solid var(--ca-gold); border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+    .btn-excel:hover { background: #ffcc00; color: #b20000; border-color: #b20000; }
+
+    .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+    .table-container { background: white; padding: 35px; border-radius: 2px; border: 1px solid #ccc; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+    .table-container::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: var(--ca-red); }
+
+    h2#display-name { text-align: center; color: var(--ca-red); font-weight: bold; border-bottom: 2px double var(--ca-red); padding-bottom: 15px; margin-bottom: 25px; text-transform: uppercase; }
+
+    .dataTables_wrapper .dataTables_filter input { border: 1px solid #ccc; padding: 5px; border-radius: 4px; }
+    table.dataTable thead th { background: #f8f8f8; color: var(--ca-red); border-bottom: 2px solid var(--ca-red) !important; font-weight: bold; }
+    table.dataTable tbody td { border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
+
+    /* NÚT SỬA NHANH TRONG Ô */
+    .cell-content { display: flex; align-items: flex-start; gap: 6px; }
+    .cell-text { flex: 1; }
+    .btn-edit-cell {
+        flex-shrink: 0;
+        background: transparent;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        cursor: pointer;
+        padding: 2px 6px;
+        font-size: 13px;
+        color: #888;
+        transition: 0.2s;
+        line-height: 1.4;
+    }
+    .btn-edit-cell:hover { background: var(--ca-red); color: white; border-color: var(--ca-red); }
+
+    /* MODAL */
+    .modal-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+        background: #1e1e20;
+        border: 2px solid var(--ca-red);
+        border-radius: 6px;
+        padding: 30px;
+        width: 680px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        color: #eee;
+        font-family: "Times New Roman";
+    }
+    .modal-box h3 {
+        margin: 0 0 20px 0;
+        color: var(--ca-gold);
+        border-bottom: 1px solid var(--ca-red);
+        padding-bottom: 10px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .modal-form-group { margin-bottom: 16px; }
+    .modal-form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #aaa; font-weight: bold; text-transform: uppercase; }
+    .modal-form-group textarea {
+        width: 100%; padding: 10px; border-radius: 4px;
+        border: 1px solid #555; background: #2c2c2e; color: #fff;
+        box-sizing: border-box; font-family: "Times New Roman"; font-size: 14px;
+        resize: vertical;
+    }
+    .modal-form-group textarea:focus { border-color: var(--ca-gold); outline: none; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end; }
+    .btn-save-modal {
+        padding: 10px 28px; background: var(--ca-red); color: white;
+        border: 1px solid var(--ca-gold); border-radius: 4px; cursor: pointer;
+        font-weight: bold; font-size: 14px; transition: 0.2s;
+    }
+    .btn-save-modal:hover { background: var(--ca-gold); color: var(--ca-red); }
+    .btn-cancel-modal {
+        padding: 10px 22px; background: #444; color: #ccc;
+        border: 1px solid #666; border-radius: 4px; cursor: pointer;
+        font-size: 14px; transition: 0.2s;
+    }
+    .btn-cancel-modal:hover { background: #555; color: #fff; }
+    .btn-reset-modal {
+        padding: 10px 22px; background: transparent; color: #888;
+        border: 1px dashed #666; border-radius: 4px; cursor: pointer;
+        font-size: 14px; transition: 0.2s;
+    }
+    .btn-reset-modal:hover { color: #fff; border-color: #999; }
+
+    .tag-manual {
+        display: inline-block;
+        background: #004080;
+        color: #80c8ff;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        margin-left: 4px;
+        vertical-align: middle;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+    .tag-auto {
+        display: inline-block;
+        background: #2a4a20;
+        color: #90e060;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        margin-left: 4px;
+        vertical-align: middle;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+
+    .info-tip {
+        background: #2c2c2e;
+        border-left: 3px solid var(--ca-gold);
+        padding: 8px 12px;
+        border-radius: 3px;
+        font-size: 0.78rem;
+        color: #bbb;
+        margin-bottom: 16px;
+    }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>HỆ THỐNG AUTO CHẤM AĐL<br>CAX CHƯ A THAI</h3>
+    </div>
+    <div class="sidebar-content">
+        <div class="form-group"><label><i class="fas fa-file-import"></i> 1. Nạp File Excel Chấm Công:</label><input type="file" id="upload" accept=".xlsx, .xls"></div>
+        <div class="form-group"><label>2. Tháng/Năm Báo Cáo:</label><input type="month" id="selectMonth" value="2026-03" oninput="updateView()"></div>
+        <div class="form-group"><label>3. Chức Danh Cán Bộ (*):</label><textarea id="inputPos" rows="3" oninput="updateView()">Cán bộ phụ trách xây dựng phong trào bảo vệ an ninh Tổ quốc</textarea></div>
+        <div class="form-group"><label>4. Mức Hưởng Định Lượng (**):</label><input type="text" id="inputLv" value="Mức IV" oninput="updateView()"></div>
+        <button class="btn-excel" onclick="exportToExcel()">📊 XUẤT FILE EXCEL PHÊ DUYỆT</button>
+        <div id="user-list-zone" style="margin-top:25px;"></div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="table-container" id="display-area" style="display:none;">
+        <h2 id="display-name"></h2>
+        <div class="info-tip">💡 Click nút <strong>✏️</strong> trên từng dòng để chỉnh sửa <strong>Nội dung công việc</strong> và <strong>Kết quả thực hiện</strong> thủ công.</div>
+        <table id="workTable" class="display cell-border" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Chức danh</th>
+                    <th>Mức hưởng</th>
+                    <th>Kế hoạch công tác</th>
+                    <th>Kết quả công tác</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+        <p style="margin-top: 20px; font-style: italic; color: #666; font-size: 0.9rem;">* Lưu ý: Nội dung bảng trên web chỉ để xem trước. Khi xuất file Excel sẽ tự động áp dụng font Times New Roman và đầy đủ chữ ký.</p>
+    </div>
+</div>
+
+<!-- MODAL CHỈNH SỬA NỘI DUNG CÔNG VIỆC -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <h3>✏️ Chỉnh sửa nội dung công việc</h3>
+        <div style="background:#3a3a3c; padding:8px 14px; border-radius:4px; margin-bottom:18px; font-size:0.9rem;">
+            📅 Ngày: <strong id="modal-date-label" style="color:var(--ca-gold);"></strong>
+        </div>
+        <div class="modal-form-group">
+            <label>Kế hoạch công tác (Nội dung công việc):</label>
+            <textarea id="modal-kehoach" rows="5" placeholder="Nhập nội dung kế hoạch công tác..."></textarea>
+        </div>
+        <div class="modal-form-group">
+            <label>Kết quả thực hiện công việc:</label>
+            <textarea id="modal-ketqua" rows="5" placeholder="Nhập kết quả thực hiện..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-reset-modal" onclick="resetToAuto()">🔄 Khôi phục tự động</button>
+            <button class="btn-cancel-modal" onclick="closeModal()">Hủy</button>
+            <button class="btn-save-modal" onclick="saveModalContent()">💾 Lưu</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let excelRows = [];
+let currentIdx = -1;
+let dataTableInstance = null;
+// customContent[userName][dateKey] = { p, r } — lưu nội dung thủ công
+let customContent = {};
+// currentRowsCache: mảng dòng đang hiển thị [ {dateKey, date, p, r, n, isManual} ]
+let currentRowsCache = [];
+let editingDateKey = null;
+
+// ===== DỮ LIỆU THỰC TẾ TỪ FILE "THÔNG KÊ VIỆC LÀM TỔ TỔNG HỢP" =====
+const CONG_VIEC_THUC_TE = [
+    {
+        p: "Củng cố và nâng cao hiệu quả hoạt động của mô hình: thôn, bôn nói không với vũ khí, vật liệu nổ, công cụ hỗ trợ và pháo tại địa bàn Thôn Drok theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Củng cố và nâng cao hiệu quả hoạt động của mô hình: thôn, bôn nói không với vũ khí, vật liệu nổ, công cụ hỗ trợ và pháo tại địa bàn Thôn Drok"
+    },
+    {
+        p: "Vận động Nhân dân tích cực tham gia tố giác tội phạm, cung cấp tin báo có giá trị phục vụ công tác đấu tranh phòng, chống tội phạm  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Tuyên truyền pháp luật, vận động Nhân dân nâng cao ý thức cảnh giác, trách nhiệm trong phòng ngừa, phát hiện, tố giác tội phạm và hành vi vi phạm pháp luật tại Glung B"
+    },
+    {
+        p: "Phát huy vai trò người có uy tín trong đồng bào dân tộc thiểu số, già làng, trưởng thôn, chức sắc tôn giáo  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Hướng dẫn hệ thống chính trị Thôn Glung Mơ Lan thực hiện công tác phát động phong trào toàn dân bảo vệ an ninh Tổ quốc trong địa bàn khu dân cư"
+    },
+    {
+        p: "Phối hợp Đoàn Thanh niên, Hội Phụ nữ, Hội Cựu chiến binh… trong tổ chức các hoạt động tuyên truyền, vận động Nhân dân tham gia giữ gìn ANTT  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Vận động Nhân dân tích cực tham gia tố giác tội phạm, cung cấp tin báo có giá trị phục vụ công tác đấu tranh phòng, chống tội phạm tại thôn Plei Lok"
+    },
+    {
+        p: "Tuyên truyền, Vận động Nhân dân tích cực tham gia tố giác tội phạm, cung cấp tin báo có giá trị phục vụ công tác đấu tranh phòng, chống tội phạm  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Phát huy vai trò người có uy tín trong đồng bào dân tộc thiểu số, già làng, trưởng thôn, chức sắc tôn giáo thôn Plei Mun Măk"
+    },
+    {
+        p: "Phát động phong trào Toàn dân bảo vệ ANTQ tại địa bàn  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 13h30' đến 17h30' đã phối hợp chặt chẽ với Đoàn Thanh niên, Hội Phụ nữ Thôn Dlâm tuyên truyền, vận động 20 hộ dân tham gia giữ gìn ANTT, chấp hành pháp luật tại địa bàn thôn."
+    },
+    {
+        p: "Phát động phong trào Toàn dân bảo vệ ANTQ tại địa bàn  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h30' đến 11h00' đã phối hợp chặt chẽ với Đoàn Thanh niên, Hội Phụ nữ Thôn Plei Hek tuyên truyền, vận động 20 hộ dân tham gia giữ gìn ANTT, chấp hành pháp luật tại địa bàn thôn."
+    },
+    {
+        p: "Phát huy vai trò người có uy tín trong đồng bào dân tộc thiểu số, già làng, trưởng thôn, chức sắc tôn giáo  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h00 phút đến 11h30 phút tổ chức kiện toàn tổ chức, phân công nhiệm vụ cụ thể cho các thành viên Tổ tự quản của Thôn Plei Tăng A. Định hướng nhiệm vụ tuyên truyền, vận động Nhân dân chấp hành pháp luật, chủ động phòng ngừa tội phạm trên địa bàn bôn"
+    },
+    {
+        p: "Phối hợp Mặt trận Tổ quốc, Đoàn Thanh niên, Hội Phụ nữ, Hội Cựu chiến binh… trong tổ chức các hoạt động tuyên truyền, vận động Nhân dân tham gia giữ gìn ANTT  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 13h15 phút đến 17h20 phút tuyên truyền, phổ biến các quy định của pháp luật về trật tự an toàn giao thông, tác hại của ma túy, vận động giao nộp vũ khí tự chế cho 10 hộ dân tại địa bàn Thôn Plei Hek"
+    },
+    {
+        p: "Tổ chức tuyên truyền các chủ trương, đường lối của Đảng, chính sách, pháp luật của Nhà nước về bảo đảm an ninh, trật tự; trọng tâm là Luật An ninh quốc gia, Luật Phòng, chống tội phạm, Luật Giao thông đường bộ, Luật Phòng, chống ma túy, Luật Cư trú… tại địa bàn Thôn Plei Ơi  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h30 phút đến 11h30 phút tuyên truyền, phổ biến các quy định của pháp luật về bảo đảm an ninh, trật tự; trọng tâm là Luật An ninh quốc gia, Luật Phòng, chống tội phạm, Luật Giao thông đường bộ, Luật Phòng, chống ma túy, Luật Cư trú… tại địa bàn Thôn Plei Ơi"
+    },
+    {
+        p: "Củng cố và nâng cao hiệu quả hoạt động của mô hình: Tổ tự quản về ANTT tại thôn Plei Ring Đáp  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h00 phút đến 11h30 phút tổ chức kiện toàn tổ chức, phân công nhiệm vụ cụ thể cho các thành viên Tổ tự quản của Thôn Plei Ring Đáp; xây dựng và duy trì nền nếp hoạt động. Định hướng nhiệm vụ tuyên truyền, vận động Nhân dân chấp hành pháp luật, chủ động phòng ngừa tội phạm trên địa bàn bôn"
+    },
+    {
+        p: "Phát huy vai trò người có uy tín trong đồng bào dân tộc thiểu số, già làng, trưởng thôn, chức sắc tôn giáo  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h30 phút đến 11h30 tuyên truyền, vận động người có uy tín, chức sắc tôn giáo tại địa bàn Thôn Plei Hek"
+    },
+    {
+        p: "Phối hợp với Đoàn Thanh niên, Hội Phụ nữ, Hội Cựu chiến binh… trong tổ chức các hoạt động tuyên truyền, vận động Nhân dân tham gia giữ gìn ANTT  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h00 phút đến 11h30 phút Phối hợp với Đoàn Thanh niên, Hội Phụ nữ, Hội Cựu chiến binh tại Thôn Thanh Thượng… trong tổ chức các hoạt động tuyên truyền, vận động Nhân dân tham gia giữ gìn ANTT."
+    },
+    {
+        p: "Phát động phong trào Toàn dân bảo vệ ANTQ tại địa bàn  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 07h15' đến 11h30' tuyên truyền, vận động 15 người dân trên địa bàn Thôn Ia Cha Wâu nâng cao ý thức trách nhiệm trong việc phát hiện, tố giác các hành vi vi phạm pháp luật, tệ nạn xã hội xảy ra trên địa bàn xã"
+    },
+    {
+        p: "Phát động phong trào Toàn dân bảo vệ ANTQ tại địa bàn  theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 13h30 phút đến 17h30 đã phát động phong trào toàn dân bảo vệ ANTQ, tuyên truyền, phổ biến các quy định của pháp luật cho quần chúng nhân dân tại địa bàn bôn Thôn Dlâm"
+    },
+    {
+        p: "Nắm tính hình ANTT, tình hình chấp hành pháp luật, dư luận của quần chúng nhân dân trên địa bàn theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 7h15 đến 11h30, tiếp xúc Ban nhân dân thôn Hải Yên nắm tình hình dư luận quần chúng nhân dân liên quan đến các vấn đề đất đai, đơn thư khiếu nại, tố cáo"
+    },
+    {
+        p: "Nắm tính hình ANTT, tình hình chấp hành pháp luật, dư luận của quần chúng nhân dân trên địa bàn theo Kế hoạch số …/KH-TH, ngày /   /2026",
+        r: "Từ 13h30 đến 17h30 tiếp xúc Ban nhân dân thôn Tân Điệp 1 nắm tình hình dư luận quần chúng nhân dân liên quan đến các vấn đề dân tộc, tôn giáo trong vùng DTTS"
+    }
+];
+
+// Seed ngẫu nhiên theo ngày để mỗi lần render cùng ngày ra cùng nội dung
+function seededRand(seed) {
+    let x = Math.sin(seed + 1) * 10000;
+    return x - Math.floor(x);
+}
+
+function generateContent(v, dayNum) {
+    const n = "Đây là thôn thuộc khu vực miền núi, có đông đồng bào dân tộc thiểu số sinh sống; điều kiện giao thông đi lại còn nhiều khó khăn, trình độ dân trí không đồng đều, đời sống và điều kiện kinh tế của Nhân dân còn hạn chế.";
+
+    if (v.toUpperCase() === "A") {
+        // Chọn nội dung theo seed từ số ngày → cùng ngày luôn ra cùng nội dung
+        const seed = dayNum || 1;
+        const idx = Math.floor(seededRand(seed) * CONG_VIEC_THUC_TE.length);
+        const item = CONG_VIEC_THUC_TE[idx];
+        return { p: item.p, r: item.r, n };
+    } else {
+        return {
+            p: `Đi công tác tại ${v}`,
+            r: `Từ 07h30 đến 17h30 công tác tại ${v} để xác minh đối tượng`,
+            n
+        };
+    }
+}
+
+function getCurrentUserKey() {
+    if (currentIdx === -1) return null;
+    return excelRows[currentIdx][0].toString().trim();
+}
+
+function getDateKey(day, month, year) {
+    return `${year}-${month}-${day < 10 ? '0' + day : day}`;
+}
+
+document.getElementById('upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const workbook = XLSX.read(evt.target.result, { type: 'binary' });
+        excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+        buildUserList();
+    };
+    reader.readAsBinaryString(file);
+});
+
+function buildUserList() {
+    const zone = document.getElementById('user-list-zone');
+    zone.innerHTML = '<p style="font-size: 0.75rem; color: #9aa0a6;">CHỌN ĐỒNG CHÍ:</p>';
+    excelRows.forEach((row, i) => {
+        if (i === 0 || !row[0]) return;
+        let hasData = false;
+        for (let j = 1; j <= 31; j++) {
+            let v = row[j] ? row[j].toString().trim() : "";
+            if (v.toUpperCase() === "A" || v.length > 5) { hasData = true; break; }
+        }
+        if (hasData) {
+            const div = document.createElement('div');
+            div.className = 'user-item';
+            div.innerText = row[0].toString().trim();
+            div.onclick = function() {
+                $('.user-item').removeClass('active');
+                $(this).addClass('active');
+                currentIdx = i; renderTable(i);
+            };
+            zone.appendChild(div);
+        }
+    });
+}
+
+function updateView() { if (currentIdx !== -1) renderTable(currentIdx); }
+
+function renderTable(idx) {
+    document.getElementById('display-area').style.display = 'block';
+    const row = excelRows[idx], mVal = document.getElementById('selectMonth').value;
+    const [year, month] = mVal.split('-');
+    const pos = document.getElementById('inputPos').value;
+    const lv = document.getElementById('inputLv').value;
+    const userName = row[0].toString().trim();
+    document.getElementById('display-name').innerText = userName.toUpperCase();
+
+    if (dataTableInstance) dataTableInstance.destroy();
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+    currentRowsCache = [];
+
+    const userKey = userName;
+    if (!customContent[userKey]) customContent[userKey] = {};
+
+    for (let d = 1; d <= 31; d++) {
+        let v = row[d] ? row[d].toString().trim() : "";
+        if (v.toUpperCase() === "A" || v.length > 5) {
+            const dd = d < 10 ? '0' + d : d;
+            const dateKey = getDateKey(d, month, year);
+            const dateStr = `${dd}/${month}/${year}`;
+            const autoContent = generateContent(v, d);
+
+            let isManual = customContent[userKey][dateKey] !== undefined;
+            let p = isManual ? customContent[userKey][dateKey].p : autoContent.p;
+            let r = isManual ? customContent[userKey][dateKey].r : autoContent.r;
+
+            currentRowsCache.push({ dateKey, date: dateStr, p, r, n: autoContent.n, isManual, v });
+
+            const rowIdx = currentRowsCache.length - 1;
+            const manualTag = isManual ? '<span class="tag-manual">THỦ CÔNG</span>' : '<span class="tag-auto">TỰ ĐỘNG</span>';
+            tbody.innerHTML += `<tr>
+                <td>${dateStr}</td>
+                <td>${pos}</td>
+                <td>${lv}</td>
+                <td>
+                    <div class="cell-content">
+                        <span class="cell-text">${p}${manualTag}</span>
+                        <button class="btn-edit-cell" onclick="openModal('${dateKey}', ${rowIdx})" title="Chỉnh sửa nội dung ngày này">✏️</button>
+                    </div>
+                </td>
+                <td>
+                    <div class="cell-content">
+                        <span class="cell-text">${r}</span>
+                    </div>
+                </td>
+            </tr>`;
+        }
+    }
+
+    dataTableInstance = $('#workTable').DataTable({
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
+        columnDefs: [{ orderable: false, targets: [3, 4] }]
+    });
+}
+
+// ===== MODAL =====
+function openModal(dateKey, rowIdx) {
+    editingDateKey = dateKey;
+    const rowData = currentRowsCache[rowIdx];
+    document.getElementById('modal-date-label').innerText = rowData.date;
+    document.getElementById('modal-kehoach').value = rowData.p;
+    document.getElementById('modal-ketqua').value = rowData.r;
+    document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+    editingDateKey = null;
+}
+
+function saveModalContent() {
+    const userKey = getCurrentUserKey();
+    if (!userKey || !editingDateKey) return;
+
+    const p = document.getElementById('modal-kehoach').value.trim();
+    const r = document.getElementById('modal-ketqua').value.trim();
+
+    if (!customContent[userKey]) customContent[userKey] = {};
+    customContent[userKey][editingDateKey] = { p, r };
+
+    closeModal();
+    renderTable(currentIdx);
+}
+
+function resetToAuto() {
+    const userKey = getCurrentUserKey();
+    if (!userKey || !editingDateKey) return;
+    if (customContent[userKey]) {
+        delete customContent[userKey][editingDateKey];
+    }
+    closeModal();
+    renderTable(currentIdx);
+}
+
+// Đóng modal khi click ngoài
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// ===== XUẤT EXCEL =====
+async function exportToExcel() {
+    if (currentIdx === -1) { alert("Chọn cán bộ!"); return; }
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('ThongKe');
+    const mVal = document.getElementById('selectMonth').value;
+    const [year, month] = mVal.split('-');
+    const pos = document.getElementById('inputPos').value;
+    const lv = document.getElementById('inputLv').value;
+    const name = excelRows[currentIdx][0].toString().trim();
+
+    worksheet.mergeCells('A1:C1'); worksheet.getCell('A1').value = 'CÔNG AN TỈNH GIA LAI';
+    worksheet.mergeCells('A2:C2'); worksheet.getCell('A2').value = 'CÔNG AN XÃ CHƯ A THAI';
+    worksheet.mergeCells('D1:F1'); worksheet.getCell('D1').value = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM';
+    worksheet.mergeCells('D2:F2'); worksheet.getCell('D2').value = 'Độc lập - Tự do - Hạnh phúc';
+    worksheet.mergeCells('A4:F4'); worksheet.getCell('A4').value = 'BẢNG THỐNG KÊ NỘI DUNG CÔNG VIỆC ĐỀ NGHỊ HƯỞNG ĐỊNH LƯỢNG ĂN';
+    worksheet.mergeCells('A5:F5'); worksheet.getCell('A5').value = `THÁNG ${month} NĂM ${year}`;
+    worksheet.mergeCells('A6:F6'); worksheet.getCell('A6').value = `Của đồng chí: ${name}`;
+
+    ['A1','A2','D1','D2','A4','A5','A6'].forEach(c => {
+        worksheet.getCell(c).alignment = { horizontal: 'center' };
+        worksheet.getCell(c).font = { name: 'Times New Roman', bold: true, size: 12 };
+    });
+
+    const headerRow = worksheet.getRow(8);
+    headerRow.values = ['Thời gian', 'Chức danh (*)', 'Mức (**)', 'Kế hoạch công tác', 'Kết quả công tác', 'Ghi chú'];
+    headerRow.eachCell(c => {
+        c.font = { name: 'Times New Roman', bold: true };
+        c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        c.fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FFF2F2F2'} };
+    });
+
+    let curr = 9;
+    const rowData = excelRows[currentIdx];
+    const userKey = name;
+    if (!customContent[userKey]) customContent[userKey] = {};
+
+    for (let d = 1; d <= 31; d++) {
+        let v = rowData[d] ? rowData[d].toString().trim() : "";
+        if (v.toUpperCase() === "A" || v.length > 5) {
+            const dd = d < 10 ? '0' + d : d;
+            const dateKey = getDateKey(d, month, year);
+            const dateStr = `${dd}/${month}/${year}`;
+            const autoContent = generateContent(v, d);
+
+            let p, r, n;
+            if (customContent[userKey][dateKey]) {
+                p = customContent[userKey][dateKey].p;
+                r = customContent[userKey][dateKey].r;
+            } else {
+                p = autoContent.p;
+                r = autoContent.r;
+            }
+            n = autoContent.n;
+
+            const row = worksheet.getRow(curr);
+            row.values = [dateStr, pos, lv, p, r, n];
+            row.eachCell(c => {
+                c.font = { name: 'Times New Roman', size: 11 };
+                c.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'}};
+                c.alignment = { wrapText: true, vertical: 'middle', horizontal: (c.address.startsWith('A') || c.address.startsWith('C')) ? 'center' : 'left' };
+            });
+            row.height = 105;
+            curr++;
+        }
+    }
+
+    let sigRow = curr + 1;
+    worksheet.mergeCells(`A${sigRow}:F${sigRow}`);
+    worksheet.getCell(`A${sigRow}`).value = 'Tôi xin cam đoan những thông tin trên là đúng và đúng với số kế hoạch công tác tuần. Nếu có sai sót tôi xin chịu hoàn toàn trách nhiệm.';
+    worksheet.getCell(`A${sigRow}`).font = { name: 'Times New Roman', italic: true };
+
+    sigRow += 5;
+    const s = worksheet.getRow(sigRow);
+    s.values = ['', 'NGƯỜI LẬP', '', 'LÃNH ĐẠO ĐỘI/TỔ', '', 'LÃNH ĐẠO ĐƠN VỊ'];
+    s.eachCell(c => { if(c.value) { c.font = { name: 'Times New Roman', bold: true }; c.alignment = { horizontal: 'center' }; } });
+
+    worksheet.getColumn(1).width = 12;
+    worksheet.getColumn(2).width = 25;
+    worksheet.getColumn(3).width = 10;
+    worksheet.getColumn(4).width = 35;
+    worksheet.getColumn(5).width = 40;
+    worksheet.getColumn(6).width = 35;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `BangKe_DLAN_${name.replace(/\s/g,'_')}.xlsx`);
+}
+</script>
+</body>
+</html>

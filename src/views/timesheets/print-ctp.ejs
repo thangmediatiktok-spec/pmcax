@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Giấy đi công tác - <%= officer.hoTen %></title>
+    <style>
+        body { font-family: "Times New Roman", Times, serif; margin: 0; padding: 0; background: #525659; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Định dạng A4 chuẩn */
+        .a4-page {
+            width: 210mm; min-height: 296mm; padding: 20mm 15mm 15mm 25mm; 
+            background: white; box-sizing: border-box; line-height: 1.4; font-size: 13pt; color: black; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.4); margin: 25px 0; page-break-after: always;
+            position: relative;
+        }
+
+        .header-box { display: flex; justify-content: space-between; align-items: flex-start; text-align: center; margin-bottom: 20px; }
+        .header-left { width: 45%; font-size: 12pt; }
+        .header-right { width: 55%; font-size: 12pt; white-space: nowrap; }
+        .line-doc { border-top: 1px solid black; width: 40%; margin: 5px auto 0; }
+        .title { text-align: center; font-weight: bold; font-size: 15pt; margin: 30px 0 10px; text-transform: uppercase; }
+        .content-body p { margin: 8px 0; text-align: justify; text-indent: 1.27cm; }
+        .sig-section { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; }
+        .sig-box { width: 48%; line-height: 1.2; }
+        .bold { font-weight: bold; } .italic { font-style: italic; }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: white; margin: 0; display: block; } 
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <% if (plans.length === 0) { %>
+        <div class="a4-page" style="display:flex; align-items:center; justify-content:center;">
+            <h2>Không có ngày đi công tác nào trong tháng này.</h2>
+        </div>
+    <% } else { %>
+        <% plans.forEach(plan => { %>
+            <% 
+                const sDayStr = String(plan.start).padStart(2, '0');
+                const eDayStr = String(plan.end).padStart(2, '0');
+                const monthStr = String(timesheet.month).padStart(2, '0');
+                const yearStr = timesheet.year;
+                
+                // Ngày lập Kế hoạch (có thể trừ lùi 1 ngày cho hợp lý, nếu start = 1 thì lấy ngày 1)
+                let makeDay = plan.start - 1;
+                if (makeDay <= 0) makeDay = 1;
+                const makeDayStr = String(makeDay).padStart(2, '0');
+                
+                const timeStr = plan.start === plan.end 
+                    ? `Ngày ${sDayStr} tháng ${monthStr} năm ${yearStr}` 
+                    : `Từ ngày ${sDayStr} tháng ${monthStr} năm ${yearStr} đến ngày ${eDayStr} tháng ${monthStr} năm ${yearStr}`;
+            %>
+            <div class="a4-page">
+                <div class="header-box">
+                    <div class="header-left">
+                        CÔNG AN TỈNH GIA LAI<br>
+                        <span class="bold">CÔNG AN XÃ CHƯ A THAI</span>
+                        <div class="line-doc"></div>
+                    </div>
+                    <div class="header-right">
+                        <span class="bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</span><br>
+                        <span class="bold">Độc lập – Tự do – Hạnh phúc</span>
+                        <div class="line-doc" style="width:160px"></div>
+                        <div style="margin-top:8px;"></div>
+                        <span class="italic">Chư A Thai, ngày <%= makeDayStr %> tháng <%= monthStr %> năm <%= yearStr %></span>
+                    </div>
+                </div>
+                
+                <div class="title">KẾ HOẠCH CÔNG TÁC</div>
+                <div style="text-align:center;margin-bottom:20px;">
+                    <span class="italic">Kính gửi:</span> <%= signerRole === 'truong_cax' ? 'Trưởng' : 'Phó Trưởng' %> Công an xã Chư A Thai.
+                </div>
+                
+                <div class="content-body">
+                    <p>Tôi tên: <span class="bold"><%= officer.hoTen %></span></p>
+                    <p>Cấp bậc: <%= officer.capBac || '....................' %> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Chức vụ: <%= officer.chucVu || 'Cán bộ' %></p>
+                    <p>Đơn vị: Công an xã Chư A Thai, tỉnh Gia Lai</p>
+                    <p>Thời gian công tác:</p>
+                    <p style="text-indent:2cm;">- <%= timeStr %>.</p>
+                    <p style="text-indent:2cm;">Địa điểm công tác: <span class="bold"><%= plan.loc %></span>.</p>
+                    <p style="text-indent:2cm;">Phương tiện: xe mô tô cá nhân.</p>
+                    <p style="text-indent:2cm;">Nội dung chính công tác: <%= purpose %>.</p>
+                    <p style="text-indent:2cm;">Thành phần tham gia: </p>
+                    <p>Sau chuyến công tác báo cáo kết quả, đề xuất hướng xử lý, giải quyết với Chỉ huy Công an xã.</p>
+                </div>
+                
+                <div class="sig-section">
+                    <div class="sig-box">
+                        <p class="bold">NGƯỜI LẬP KẾ HOẠCH</p>
+                        <div style="margin-top:75px;" class="bold">
+                            <%= officer.capBac %> <%= officer.hoTen %>
+                        </div>
+                    </div>
+                    <div class="sig-box">
+                        <p class="bold">
+                            <% if (signerRole === 'truong_cax') { %>
+                                TRƯỞNG CÔNG AN XÃ
+                            <% } else { %>
+                                KT. TRƯỞNG CÔNG AN XÃ<br>
+                                PHÓ TRƯỞNG CÔNG AN XÃ
+                            <% } %>
+                        </p>
+                        <div style="margin-top:<%= signerRole === 'truong_cax' ? '75px' : '58px' %>;" class="bold">
+                            <%= bRank %> <%= bName %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } %>
+
+</body>
+</html>
