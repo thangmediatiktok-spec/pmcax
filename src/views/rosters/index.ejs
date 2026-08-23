@@ -8,7 +8,47 @@
   <% } %>
 </div>
 
-<div class="card border-0 shadow-sm">
+<!-- Mobile List View -->
+<div class="d-md-none mb-3">
+  <% if (rosters && rosters.length > 0) { %>
+    <div class="list-group shadow-sm border-0">
+      <% rosters.forEach(roster => { %>
+        <% 
+          const d1 = new Date(roster.weekStart).toLocaleDateString('vi-VN');
+          const d2 = new Date(roster.weekEnd).toLocaleDateString('vi-VN');
+        %>
+        <div class="list-group-item py-3 border-bottom" onclick="window.location='/rosters/<%= roster._id %>'" style="cursor: pointer;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold text-primary" style="font-size: 14px;">
+              <i class="fas fa-calendar-alt me-1"></i> Tuần từ <%= d1 %> - <%= d2 %>
+            </div>
+            <span class="badge bg-success">Đã ban hành</span>
+          </div>
+          <div class="small text-muted mb-2">
+            <div><i class="fas fa-user-edit me-1"></i>Tạo bởi: <%= roster.createdBy ? roster.createdBy.hoTen : '-' %></div>
+            <div><i class="fas fa-clock me-1"></i>Ngày tạo: <%= new Date(roster.createdAt).toLocaleDateString('vi-VN') %></div>
+          </div>
+          <% if (typeof canManage !== 'undefined' && canManage) { %>
+          <div class="d-flex gap-2 mt-2" onclick="event.stopPropagation()">
+            <a href="/rosters/<%= roster._id %>/edit" class="btn btn-sm btn-outline-warning flex-grow-1"><i class="fas fa-edit"></i> Sửa</a>
+            <form action="/rosters/<%= roster._id %>?_method=DELETE" method="POST" class="delete-form flex-grow-1 d-flex" data-confirm="Xác nhận xóa lịch trực tuần này?">
+              <button type="submit" class="btn btn-sm btn-outline-danger w-100"><i class="fas fa-trash"></i> Xóa</button>
+            </form>
+          </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="text-center py-5 text-muted bg-white rounded shadow-sm">
+      <i class="fas fa-calendar-times fa-2x mb-2 d-block opacity-25"></i>
+      Chưa có dữ liệu lịch trực
+    </div>
+  <% } %>
+</div>
+
+<!-- Desktop Table View -->
+<div class="card border-0 shadow-sm d-none d-md-block">
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
@@ -28,14 +68,14 @@
                 const d1 = new Date(roster.weekStart).toLocaleDateString('vi-VN');
                 const d2 = new Date(roster.weekEnd).toLocaleDateString('vi-VN');
               %>
-            <tr>
+            <tr onclick="window.location='/rosters/<%= roster._id %>'" style="cursor: pointer;">
               <td class="ps-3 fw-medium">
                 Tuần từ ngày <%= d1 %> đến <%= d2 %>
               </td>
               <td><span class="badge bg-success">Đã ban hành</span></td>
               <td><%= roster.createdBy ? roster.createdBy.hoTen : '-' %></td>
               <td><%= new Date(roster.createdAt).toLocaleDateString('vi-VN') %></td>
-              <td class="text-end pe-3">
+              <td class="text-end pe-3" onclick="event.stopPropagation()">
                 <a href="/rosters/<%= roster._id %>" class="btn btn-sm btn-outline-info" title="Xem chi tiết"><i class="fas fa-eye"></i></a>
                 <% if (typeof canManage !== 'undefined' && canManage) { %>
                 <a href="/rosters/<%= roster._id %>/edit" class="btn btn-sm btn-outline-warning" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>

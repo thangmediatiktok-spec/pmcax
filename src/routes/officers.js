@@ -278,6 +278,78 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.single('anhDaiDien'), 
   }
 });
 
+router.get('/export/excel', isAuthenticated, async (req, res) => {
+  try {
+    const user = req.session.user;
+    const query = {};
+
+    if (user.role === 'cbcs') {
+      if (!user.officerProfile) {
+        req.flash('error', 'Bạn chưa có hồ sơ cán bộ.');
+        return res.redirect('/');
+      }
+      query._id = user.officerProfile;
+    } else if (user.role === 'pho_cax' && user.officerProfile) {
+      const phoCaxProfile = await Officer.findById(user.officerProfile);
+      if (phoCaxProfile && phoCaxProfile.toCongTac) {
+        query.toCongTac = phoCaxProfile.toCongTac;
+      } else {
+        query._id = user.officerProfile; // Fallback
+      }
+    }
+
+    const officers = await Officer.find(query)
+      .populate('toCongTac')
+      .sort({ chucVu: -1, hoTen: 1 }); // Basic sort
+
+    const data = officers.map((o, i) => ({
+      'STT': i + 1,
+      'Số hiệu CAND': o.maSo || '',
+      'Họ và tên': o.hoTen || '',
+      'Ngày sinh': o.ngaySinh ? new Date(o.ngaySinh).toLocaleDateString('vi-VN') : '',
+      'Giới tính': o.gioiTinh || '',
+      'Số CCCD': o.soCCCD || '',
+      'Ngày cấp CCCD': o.ngayCapCCCD ? new Date(o.ngayCapCCCD).toLocaleDateString('vi-VN') : '',
+      'Số điện thoại': o.soDienThoai || '',
+      'Email': o.email || '',
+      'Quê quán': o.queQuan || '',
+      'Địa chỉ thường trú': o.diaChiThuongTru || '',
+      'Chức vụ': o.chucVu || '',
+      'Cấp bậc': o.capBac || '',
+      'Tổ công tác': o.toCongTac ? o.toCongTac.ten : '',
+      'Ngày nhập ngũ': o.ngayNhapNgu ? new Date(o.ngayNhapNgu).toLocaleDateString('vi-VN') : '',
+      'Đảng viên': o.dangVien ? 'Có' : 'Không',
+      'Ngày vào Đảng': o.ngayVaoDang ? new Date(o.ngayVaoDang).toLocaleDateString('vi-VN') : '',
+      'Học vấn': o.hocVan || '',
+      'Chuyên ngành': o.chuyenNganh || '',
+      'Lý luận chính trị': o.lyLuanChinhTri || '',
+      'Nghiệp vụ CA': o.nghiepVuCA || '',
+      'Trường đào tạo CA': o.truongDaoTaoCA || '',
+      'Ngoại ngữ': o.ngoaiNgu || '',
+      'Tin học': o.tinHoc || ''
+    }));
+
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.json_to_sheet(data);
+
+    // Auto-fit columns
+    const wscols = Object.keys(data[0] || {}).map(() => ({ wch: 18 }));
+    ws['!cols'] = wscols;
+
+    xlsx.utils.book_append_sheet(wb, ws, 'DanhSach_CBCS');
+    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    
+    const fileName = `DanhSach_CBCS_${Date.now()}.xlsx`;
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    console.error('Export Excel Error:', err);
+    req.flash('error', 'Lỗi xuất file Excel.');
+    res.redirect('back');
+  }
+});
+
 router.get('/:id', isAuthenticated, async (req, res) => {
   try {
     const officer = await Officer.findById(req.params.id).populate('toCongTac');

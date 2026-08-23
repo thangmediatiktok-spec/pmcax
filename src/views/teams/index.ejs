@@ -11,7 +11,43 @@
   <% } %>
 </div>
 
-<div class="card border-0 shadow-sm">
+<!-- Mobile List View -->
+<div class="d-md-none mb-3">
+  <% if (teams.length === 0) { %>
+    <div class="text-center py-5 text-muted bg-white rounded shadow-sm">
+      <i class="fas fa-people-group fa-2x mb-2 d-block opacity-25"></i>
+      Chưa có tổ công tác nào
+    </div>
+  <% } else { %>
+    <div class="list-group shadow-sm border-0">
+      <% teams.forEach((team, i) => { %>
+        <div class="list-group-item py-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold" style="color: #1a2235; font-size: 15px;">
+              <span class="badge bg-light text-dark border me-1"><%= team.thuTu %></span> <%= team.ten %>
+            </div>
+            <span class="badge bg-<%= team.trangThai ? 'success' : 'secondary' %>"><%= team.trangThai ? 'Sử dụng' : 'Đã ẩn' %></span>
+          </div>
+          <div class="text-muted small mb-3">
+            <i class="fas fa-info-circle me-1"></i><%= team.moTa || 'Không có mô tả' %>
+          </div>
+          
+          <% if (currentUser && currentUser.role === 'admin') { %>
+          <div class="d-flex gap-2">
+            <a href="/teams/<%= team._id %>/edit" class="btn btn-sm btn-outline-warning flex-grow-1"><i class="fas fa-edit"></i> Sửa</a>
+            <form action="/teams/<%= team._id %>?_method=DELETE" method="POST" class="delete-form flex-grow-1 d-flex" data-confirm="Xóa tổ công tác <%= team.ten %>?">
+              <button type="submit" class="btn btn-sm btn-outline-danger w-100"><i class="fas fa-trash"></i> Xóa</button>
+            </form>
+          </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Desktop Table View -->
+<div class="card border-0 shadow-sm d-none d-md-block">
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">

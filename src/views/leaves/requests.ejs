@@ -24,14 +24,7 @@
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
-  <div class="col-md-3">
-    <div class="card border-0 shadow-sm bg-primary text-white h-100">
-      <div class="card-body">
-        <h6 class="card-title text-white-50 mb-1"><i class="fas fa-clock me-1"></i>Chờ duyệt</h6>
-        <h3 class="fw-bold mb-0"><%= pendingLeaves.length %> <small class="fs-6 fw-normal">đơn</small></h3>
-      </div>
-    </div>
-  </div>
+
   <div class="col-md-3">
     <div class="card border-0 shadow-sm bg-success text-white h-100">
       <div class="card-body">
@@ -63,7 +56,82 @@
     <h6 class="mb-0 fw-semibold text-primary"><i class="fas fa-list-ul me-2"></i>Chi tiết tất cả đơn xin nghỉ</h6>
   </div>
   <div class="card-body p-0">
-    <div class="table-responsive">
+    <!-- Mobile List View -->
+    <div class="d-md-none">
+      <% const fmtDateMobile = d => d ? new Date(d).toLocaleDateString('vi-VN') : '-'; %>
+      <% if (allLeaves.length === 0) { %>
+        <div class="text-center text-muted py-4">Chưa có đơn xin nghỉ phép nào</div>
+      <% } else { %>
+        <div class="list-group list-group-flush">
+          <% allLeaves.forEach(l => { %>
+            <% 
+              let bClass = 'bg-warning text-dark';
+              let status = l.trangThai || 'Đã duyệt';
+              if(status === 'Đã duyệt') bClass = 'bg-success';
+              if(status === 'Từ chối') bClass = 'bg-danger';
+            %>
+            <a href="#" class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#leaveModal_<%= l._id %>">
+              <div>
+                <div class="fw-bold text-primary mb-1"><%= l.officer ? l.officer.hoTen : 'Đã xóa cán bộ' %></div>
+                <div class="small text-muted"><%= fmtDateMobile(l.tuNgay) %> - <%= fmtDateMobile(l.denNgay) %> (<%= l.soNgayNghi %> ngày)</div>
+              </div>
+              <div>
+                <span class="badge <%= bClass %>"><%= status %></span>
+              </div>
+            </a>
+
+            <!-- Modal for mobile -->
+            <div class="modal fade" id="leaveModal_<%= l._id %>" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow">
+                  <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Chi tiết đơn nghỉ phép</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                      <span class="text-muted small">Cán bộ</span>
+                      <span class="fw-semibold"><%= l.officer ? l.officer.hoTen : 'Đã xóa cán bộ' %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                      <span class="text-muted small">Thời gian</span>
+                      <span class="fw-semibold"><%= fmtDateMobile(l.tuNgay) %> đến <%= fmtDateMobile(l.denNgay) %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                      <span class="text-muted small">Số ngày</span>
+                      <span class="fw-bold text-primary"><%= l.soNgayNghi %> ngày</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                      <span class="text-muted small">Loại phép</span>
+                      <span class="badge bg-secondary"><%= l.loaiPhep || 'Phép năm' %></span>
+                    </div>
+                    <div class="mb-3 border-bottom pb-2">
+                      <span class="text-muted small d-block mb-1">Lý do cụ thể</span>
+                      <span class="fw-medium"><%= l.lyDo %></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="text-muted small">Trạng thái</span>
+                      <span class="badge <%= bClass %> fs-6"><%= status %></span>
+                    </div>
+                    
+                    <% if (currentUser && ['admin','editor'].includes(currentUser.role)) { %>
+                      <div class="mt-4 pt-3 border-top d-flex flex-column gap-2">
+                        <form action="/leaves/<%= l._id %>?_method=DELETE" method="POST" class="delete-form" data-confirm="Xác nhận xóa lịch sử này?">
+                          <button type="submit" class="btn btn-outline-danger w-100"><i class="fas fa-trash me-2"></i>Xóa đơn nghỉ phép</button>
+                        </form>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="table-responsive d-none d-md-block">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
@@ -109,20 +177,9 @@
               </td>
               <% if (currentUser && ['admin','editor'].includes(currentUser.role)) { %>
               <td class="text-end pe-3">
-                <% if (status === 'Chờ duyệt') { %>
-                  <form action="/leaves/<%= l._id %>/status?_method=PATCH" method="POST" class="d-inline">
-                    <input type="hidden" name="trangThai" value="Đã duyệt">
-                    <button type="submit" class="btn btn-sm btn-outline-success" title="Duyệt"><i class="fas fa-check"></i></button>
-                  </form>
-                  <form action="/leaves/<%= l._id %>/status?_method=PATCH" method="POST" class="d-inline">
-                    <input type="hidden" name="trangThai" value="Từ chối">
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Từ chối"><i class="fas fa-times"></i></button>
-                  </form>
-                <% } else { %>
-                  <form action="/leaves/<%= l._id %>?_method=DELETE" method="POST" class="d-inline delete-form" data-confirm="Xóa lịch sử nghỉ phép này?">
-                    <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
-                  </form>
-                <% } %>
+                <form action="/leaves/<%= l._id %>?_method=DELETE" method="POST" class="d-inline delete-form" data-confirm="Xóa lịch sử nghỉ phép này?">
+                  <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
+                </form>
               </td>
               <% } %>
             </tr>

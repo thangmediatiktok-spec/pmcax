@@ -324,49 +324,20 @@ router.post('/', isAuthenticated, async (req, res) => {
       }
     }
 
-    const trangThai = (user && ['admin', 'truong_cax'].includes(user.role)) ? 'Đã duyệt' : 'Chờ duyệt';
-    const nguoiDuyet = trangThai === 'Đã duyệt' ? user._id : undefined;
+    const trangThai = 'Đã duyệt';
+    const nguoiDuyet = user._id;
 
     await Leave.create({ officer, tuNgay, denNgay, soNgayNghi, lyDo, nam, loaiPhep: loaiPhep || 'Phép năm', trangThai, nguoiDuyet });
     
-    req.flash('success', trangThai === 'Đã duyệt' ? 'Thêm lượt nghỉ phép thành công' : 'Đã gửi đơn xin nghỉ phép chờ duyệt');
-    res.redirect(`/leaves/${officer}?year=${nam}`);
+    req.flash('success', 'Thêm lượt nghỉ phép thành công. Vui lòng tạo đơn PDF.');
+    res.redirect(`/leaves/print-form?officerId=${officer}&tuNgay=${tuNgay}&denNgay=${denNgay}&lyDo=${encodeURIComponent(lyDo)}`);
   } catch (err) {
     req.flash('error', 'Lỗi thêm nghỉ phép');
     res.redirect('/leaves');
   }
 });
 
-router.patch('/:id/status', isAuthenticated, isEditorOrAdmin, async (req, res) => {
-  try {
-    const leave = await Leave.findById(req.params.id).populate('officer');
-    if (!leave) {
-      req.flash('error', 'Không tìm thấy đơn nghỉ phép');
-      return res.redirect('back');
-    }
 
-    const user = req.session.user;
-    if (user.role === 'pho_cax') {
-      const phoCax = await Officer.findById(user.officerProfile);
-      if (!phoCax || !leave.officer.toCongTac || phoCax.toCongTac.toString() !== leave.officer.toCongTac.toString()) {
-        req.flash('error', 'Bạn không có quyền duyệt phép cho thành viên ngoài tổ');
-        return res.redirect('back');
-      }
-    }
-    
-    leave.trangThai = req.body.trangThai;
-    if (leave.trangThai === 'Đã duyệt' || leave.trangThai === 'Từ chối') {
-      leave.nguoiDuyet = user._id;
-    }
-    await leave.save();
-    
-    req.flash('success', `Đã cập nhật trạng thái thành: ${leave.trangThai}`);
-    res.redirect('back');
-  } catch (err) {
-    req.flash('error', 'Lỗi cập nhật trạng thái');
-    res.redirect('back');
-  }
-});
 
 router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
   try {

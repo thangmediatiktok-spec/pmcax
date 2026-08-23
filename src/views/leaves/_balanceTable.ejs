@@ -1,4 +1,81 @@
-<div class="table-responsive">
+<!-- Mobile List View -->
+<div class="d-md-none">
+  <% if (list.length === 0) { %>
+    <div class="text-center py-5 text-muted">Không có dữ liệu</div>
+  <% } else { %>
+    <div class="list-group list-group-flush border-top border-bottom">
+      <% list.forEach((r, idx) => { %>
+        <% 
+          const nnYear = r.officer.ngayNhapNgu ? new Date(r.officer.ngayNhapNgu).getFullYear() : null;
+          const seniority = nnYear ? year - nnYear : 0;
+        %>
+        <a href="#" class="list-group-item list-group-item-action py-3" data-bs-toggle="modal" data-bs-target="#balanceModal_<%= r.officer._id %>">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-bold text-dark"><%= r.officer.hoTen %></div>
+              <div class="small text-muted"><%= r.officer.maSo %> - <%= r.officer.chucVu %></div>
+            </div>
+            <div><i class="fas fa-chevron-right text-muted opacity-50"></i></div>
+          </div>
+          <div class="d-flex justify-content-between text-center bg-light rounded p-2">
+            <div>
+              <div class="small text-muted mb-1">Được nghỉ</div>
+              <div class="fw-bold text-primary"><%= r.allowed %></div>
+            </div>
+            <div class="border-start border-end px-3">
+              <div class="small text-muted mb-1">Đã nghỉ</div>
+              <div class="fw-bold text-danger"><%= r.taken %></div>
+            </div>
+            <div>
+              <div class="small text-muted mb-1">Còn lại</div>
+              <div class="fw-bold text-success"><%= r.remaining %></div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Modal for Mobile -->
+        <div class="modal fade" id="balanceModal_<%= r.officer._id %>" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+              <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Chi tiết quỹ phép</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                  <h5 class="fw-bold text-primary mb-1"><%= r.officer.hoTen %></h5>
+                  <span class="badge bg-secondary"><%= r.officer.maSo %></span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                  <span class="text-muted small">Tổ công tác</span>
+                  <span class="fw-semibold"><%= r.officer.toCongTac ? r.officer.toCongTac.ten : '-' %></span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                  <span class="text-muted small">Ngày nhập ngũ</span>
+                  <span class="fw-semibold"><%= fmtDate(r.officer.ngayNhapNgu) %></span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                  <span class="text-muted small">Thâm niên</span>
+                  <span class="fw-semibold"><%= seniority >= 0 ? seniority : 0 %> năm</span>
+                </div>
+                
+                <div class="mt-4">
+                  <a href="/leaves/<%= r.officer._id %>?year=<%= year %>" class="btn btn-primary w-100">
+                    <i class="fas fa-eye me-2"></i>Xem lịch sử nghỉ phép
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Desktop Table View -->
+<div class="table-responsive d-none d-md-block">
   <table class="table table-hover mb-0 align-middle text-center">
     <thead class="table-light">
       <tr>

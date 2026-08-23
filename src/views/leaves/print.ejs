@@ -90,7 +90,8 @@
   <div class="col-md-8 p-4 bg-secondary bg-opacity-10 rounded">
     <div class="text-center mb-2 fw-semibold text-muted"><i class="fas fa-eye me-1"></i>Bản xem trước (Live Preview)</div>
     
-    <div class="a4-wrapper">
+    <div id="pdfPreviewContainer" style="overflow: hidden; width: 100%; display: flex; justify-content: center;">
+      <div class="a4-wrapper" id="a4Wrapper">
       <div id="pdfContent">
         <!-- PHẦN NỘI DUNG CHÍNH -->
         <div class="pdf-main">
@@ -107,9 +108,14 @@
             </tr>
           </table>
 
-          <p style="text-align: center; font-style: italic; margin-bottom: 8px;">
-            <em>Chư A Thai, ngày <span id="outNgayIn">...</span> tháng <span id="outThangIn">...</span> năm <span id="outNamIn">.....</span></em>
-          </p>
+          <table style="width: 100%; margin-bottom: 8px;">
+            <tr>
+              <td style="width: 38%;"></td>
+              <td style="width: 62%; text-align: center; font-style: italic;">
+                <em>Chư A Thai, ngày <span id="outNgayIn">...</span> tháng <span id="outThangIn">...</span> năm <span id="outNamIn">.....</span></em>
+              </td>
+            </tr>
+          </table>
 
           <p style="text-align: center; font-size: 15pt; font-weight: bold; margin-top: 12px; margin-bottom: 2px;">ĐƠN XIN NGHỈ PHÉP</p>
           <p style="text-align: center; margin-bottom: 12px;">(Chế độ phép năm <span id="outNamPhep">2026</span>)</p>
@@ -149,6 +155,7 @@
           <p>Tổng số ngày CBCS được nghỉ phép theo chế độ: <span id="outTongPhep">......</span> ngày</p>
           <p>Tổng số ngày đã nghỉ trừ vào chế độ phép: <span id="outDaNghiDuoi">......</span> ngày</p>
           <p>Tổng số ngày nghỉ phép còn lại: <span id="outConLai">......</span> ngày</p>
+        </div>
         </div>
       </div>
     </div>
@@ -235,6 +242,21 @@
   document.getElementById('lyDo').addEventListener('input', updatePreview);
   document.getElementById('nguoiKy').addEventListener('change', updatePreview);
 
+  // Auto-fill from query parameters if present
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('officerId')) {
+    select.value = urlParams.get('officerId');
+  }
+  if (urlParams.has('tuNgay')) {
+    document.getElementById('tuNgay').value = urlParams.get('tuNgay');
+  }
+  if (urlParams.has('denNgay')) {
+    document.getElementById('denNgay').value = urlParams.get('denNgay');
+  }
+  if (urlParams.has('lyDo')) {
+    document.getElementById('lyDo').value = urlParams.get('lyDo');
+  }
+
   updatePreview();
 
   document.getElementById('btnExport').addEventListener('click', function() {
@@ -253,6 +275,28 @@
 
     html2pdf().set(opt).from(element).save();
   });
+
+  // Responsive scale for mobile
+  function resizePdfPreview() {
+    const container = document.getElementById('pdfPreviewContainer');
+    const wrapper = document.getElementById('a4Wrapper');
+    if (window.innerWidth < 768) {
+      const containerW = container.clientWidth;
+      // 210mm is approx 794px at standard 96dpi
+      const scale = containerW / 794;
+      wrapper.style.transform = `scale(${scale})`;
+      wrapper.style.transformOrigin = 'top center';
+      // Adjust container height to match scaled wrapper (297mm approx 1122px)
+      container.style.height = (1122 * scale) + 'px';
+    } else {
+      wrapper.style.transform = 'none';
+      container.style.height = 'auto';
+    }
+  }
+
+  window.addEventListener('resize', resizePdfPreview);
+  // Give it a tiny delay to ensure layout is done
+  setTimeout(resizePdfPreview, 100);
 </script>
 
 <%- include('../partials/footer') %>

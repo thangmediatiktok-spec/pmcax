@@ -46,7 +46,46 @@
   .code-k { background-color: #f1f3f4; color: #5f6368; }
 </style>
 
-<div class="card border-0 shadow-sm">
+<!-- Mobile List View -->
+<div class="d-md-none mb-4">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h6 class="mb-0 fw-semibold text-primary">Danh sách cán bộ (Tháng <%= targetMonth %>/<%= targetYear %>)</h6>
+    </div>
+    <div class="card-body p-0">
+      <% if (officers && officers.length > 0) { %>
+        <div class="list-group list-group-flush">
+          <% officers.forEach(off => { %>
+            <a href="/timesheets/<%= targetYear %>/<%= targetMonth %>/<%= off._id %>" class="list-group-item list-group-item-action py-3 border-bottom d-flex align-items-center gap-3">
+              <% if (off.anhDaiDien) { %>
+                <img src="<%= off.anhDaiDien %>" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+              <% } else { %>
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#4a90e2,#007aff);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <span class="text-white fw-bold" style="font-size:14px"><%= off.hoTen.charAt(0) %></span>
+                </div>
+              <% } %>
+              <div class="flex-grow-1">
+                <div class="fw-bold" style="color: #2c3e50; font-size: 14px;"><%= off.hoTen %></div>
+                <div class="text-muted small" style="font-size: 11px;"><i class="fas fa-id-badge me-1"></i><%= off.maSo %> | <%= off.capBac || 'CBCS' %></div>
+              </div>
+              <div class="text-primary small fw-semibold">
+                Chấm công <i class="fas fa-chevron-right ms-1"></i>
+              </div>
+            </a>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5 text-muted">
+          <i class="fas fa-users-slash fa-2x mb-2 d-block opacity-25"></i>
+          Không có dữ liệu cán bộ
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Desktop Table View -->
+<div class="card border-0 shadow-sm d-none d-md-block">
   <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
     <h6 class="mb-0 fw-semibold">Bảng chấm công tổng hợp tháng <%= targetMonth %>/<%= targetYear %></h6>
     <span class="badge bg-primary text-white"><%= officers.length %> Cán bộ</span>
@@ -98,7 +137,7 @@
                   %>
                   <td>
                     <div class="code-cell <%= cssClass %>" title="<%= title %>">
-                      <%= codeStr %>
+                       <%= codeStr %>
                     </div>
                   </td>
                 <% } %>

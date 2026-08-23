@@ -9,7 +9,67 @@
   <a href="/users/create" class="btn btn-danger btn-sm"><i class="fas fa-plus me-1"></i>Thêm tài khoản</a>
 </div>
 
-<div class="card border-0 shadow-sm">
+<!-- Mobile List View -->
+<div class="d-md-none mb-3">
+  <% if (users.length === 0) { %>
+    <div class="text-center py-5 text-muted bg-white rounded shadow-sm">
+      <i class="fas fa-users-slash fa-2x mb-2 d-block opacity-25"></i>
+      Không có tài khoản nào
+    </div>
+  <% } else { %>
+    <div class="list-group shadow-sm border-0">
+      <% users.forEach(u => { %>
+        <%
+          let roleBadge = 'secondary';
+          let roleText = 'Cán bộ';
+          if(u.role === 'admin') { roleBadge = 'danger'; roleText = 'Admin'; }
+          else if(u.role === 'truong_cax') { roleBadge = 'warning text-dark'; roleText = 'Trưởng CAX'; }
+          else if(u.role === 'pho_cax') { roleBadge = 'primary'; roleText = 'Phó Trưởng CAX'; }
+        %>
+        <div class="list-group-item py-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="fw-bold" style="color: #1a2235; font-size: 15px;">
+                <i class="fas fa-user-circle text-muted me-1"></i> <%= u.username %>
+              </div>
+              <div class="small text-muted"><%= u.hoTen %></div>
+            </div>
+            <span class="badge bg-<%= roleBadge %>"><%= roleText %></span>
+          </div>
+          
+          <div class="mb-3 d-flex justify-content-between align-items-center">
+            <span class="badge bg-<%= u.trangThai ? 'success' : 'secondary' %>"><%= u.trangThai ? 'Hoạt động' : 'Đã khóa' %></span>
+            <small class="text-muted" style="font-size: 11px;">
+              <i class="fas fa-clock me-1"></i><%= u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('vi-VN') : 'Chưa ĐN' %>
+            </small>
+          </div>
+          
+          <div class="d-flex gap-2">
+            <a href="/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-warning flex-grow-1"><i class="fas fa-edit"></i> Sửa</a>
+            <% if (u._id.toString() !== currentUser._id.toString()) { %>
+              <form action="/users/<%= u._id %>/toggle-lock" method="POST" class="flex-grow-1 d-flex">
+                <button type="submit" class="btn btn-sm w-100 <%= u.trangThai ? 'btn-outline-secondary' : 'btn-outline-success' %>">
+                  <i class="fas <%= u.trangThai ? 'fa-lock' : 'fa-unlock' %>"></i> <%= u.trangThai ? 'Khóa' : 'Mở' %>
+                </button>
+              </form>
+              <form action="/users/<%= u._id %>/reset-2fa" method="POST" class="delete-form flex-grow-1 d-flex" data-confirm="Tắt 2FA cho <%= u.username %>?">
+                <button type="submit" class="btn btn-sm btn-outline-info w-100" title="Tắt 2FA">
+                  <i class="fas fa-mobile-alt"></i><i class="fas fa-slash fa-stack-1x" style="font-size:0.6em;color:red;opacity:0.8;"></i>
+                </button>
+              </form>
+              <form action="/users/<%= u._id %>?_method=DELETE" method="POST" class="delete-form" data-confirm="Xóa tài khoản <%= u.username %>?">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Desktop Table View -->
+<div class="card border-0 shadow-sm d-none d-md-block">
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">

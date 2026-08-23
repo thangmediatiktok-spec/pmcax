@@ -63,6 +63,9 @@
       <div class="card-body p-3">
         <h6 class="fw-semibold small mb-2">Thao tác</h6>
         <% if (currentUser && currentUser.officerProfile && currentUser.officerProfile.toString() === officer._id.toString()) { %>
+        <a href="/officers/export/excel" class="btn btn-outline-success w-100 mb-2 btn-sm">
+          <i class="fas fa-file-excel me-1"></i>Xuất Excel hồ sơ
+        </a>
         <button class="btn btn-outline-secondary w-100 mb-2 btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
           <i class="fas fa-key me-1"></i>Đổi mật khẩu đăng nhập
         </button>
