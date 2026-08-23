@@ -96,14 +96,21 @@
           <i class="fas fa-chevron-down sidebar-text" style="font-size: 10px; transition: transform 0.3s;"></i>
         </a>
         <ul class="collapse list-unstyled <%= (locals.activeMenu || '').startsWith('leaves') ? 'show' : '' %>" id="leavesSubmenu" style="padding-left: 24px;">
+          <% if (currentUser.officerProfile) { %>
+          <li>
+            <a href="/leaves/<%= currentUser.officerProfile %>" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
+              <i class="fas fa-user-clock me-2" style="font-size: 10px;"></i> Phép của tôi
+            </a>
+          </li>
+          <% } %>
           <li>
             <a href="/leaves/taken" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_taken' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
-              <i class="fas fa-user-check me-2" style="font-size: 10px;"></i> Đã nghỉ phép
+              <i class="fas fa-user-check me-2" style="font-size: 10px;"></i> Cán bộ đã nghỉ
             </a>
           </li>
           <li>
             <a href="/leaves/not-taken" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_not_taken' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
-              <i class="fas fa-user-times me-2" style="font-size: 10px;"></i> Chưa nghỉ phép
+              <i class="fas fa-user-times me-2" style="font-size: 10px;"></i> Cán bộ chưa nghỉ
             </a>
           </li>
 
