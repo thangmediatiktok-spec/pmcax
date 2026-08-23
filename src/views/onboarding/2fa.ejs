@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; padding: 40px 0; font-family: "Segoe UI", Arial, sans-serif; }
+    .onboarding-card { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #1a2235, #2d3748); color: white; padding: 30px 20px; border-bottom: none; }
+    .step-indicator { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-right: 15px; }
+    .step-indicator.active { background: #e63946; color: white; box-shadow: 0 0 0 4px rgba(230,57,70,0.3); }
+    .qr-container { background: white; padding: 15px; border-radius: 12px; display: inline-block; border: 1px solid #eee; }
+    .btn-submit { background: linear-gradient(135deg,#e63946,#c1121f); border: none; padding: 12px 25px; font-weight: 600; color: white; border-radius: 8px; }
+    .btn-submit:hover { background: linear-gradient(135deg,#c1121f,#a00f1a); color: white; }
+    .otp-input { text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: bold; max-width: 250px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="container max-w-800" style="max-width: 800px;">
+    <div class="onboarding-card card">
+      <div class="card-header d-flex align-items-center">
+        <div class="step-indicator"><i class="fas fa-check"></i></div>
+        <div>
+          <h4 class="mb-0 fw-bold">Bước 1: Thông tin cá nhân</h4>
+        </div>
+      </div>
+      <div class="card-header d-flex align-items-center" style="border-top: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, #2d3748, #4a5568);">
+        <div class="step-indicator active">2</div>
+        <div>
+          <h4 class="mb-0 fw-bold">Bước 2: Thiết lập bảo mật 2 lớp (BẮT BUỘC)</h4>
+          <p class="mb-0 mt-1 text-light" style="opacity: 0.8; font-size: 14px;">Bảo vệ tài khoản bằng Google Authenticator</p>
+        </div>
+      </div>
+      <div class="card-body p-4 p-md-5">
+        <%- include('../partials/flash') %>
+        
+        <div class="row align-items-center">
+          <div class="col-md-5 text-center mb-4 mb-md-0">
+            <h6 class="fw-bold text-muted mb-3">1. Quét mã QR bằng ứng dụng</h6>
+            <div class="qr-container shadow-sm mb-3">
+              <img src="<%= qrCodeUrl %>" alt="QR Code" class="img-fluid">
+            </div>
+            <p class="text-muted small mb-0">Hoặc nhập mã bí mật thủ công:</p>
+            <code class="fs-5 bg-light p-2 rounded d-inline-block mt-2 fw-bold text-danger"><%= secret %></code>
+          </div>
+          
+          <div class="col-md-7 border-start ps-md-5">
+            <h6 class="fw-bold text-muted mb-3">2. Hướng dẫn cài đặt</h6>
+            <ul class="text-muted small mb-4 lh-lg">
+              <li>Tải ứng dụng <strong>Google Authenticator</strong> trên điện thoại.</li>
+              <li>Mở ứng dụng, chọn biểu tượng dấu cộng <strong>(+)</strong> và chọn <strong>Quét mã QR</strong>.</li>
+              <li>Đưa camera quét mã QR ở bên trái (hoặc nhập mã bí mật).</li>
+              <li>Sau khi thêm thành công, ứng dụng sẽ hiện 6 con số ngẫu nhiên liên tục thay đổi.</li>
+            </ul>
+
+            <h6 class="fw-bold text-muted mb-3">3. Nhập mã xác nhận để hoàn tất</h6>
+            <form action="/onboarding/2fa/verify" method="POST">
+              <div class="mb-4">
+                <input type="text" name="token" class="form-control form-control-lg otp-input" required autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="------">
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-submit"><i class="fas fa-shield-check me-2"></i>Hoàn tất thiết lập & Đăng nhập</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

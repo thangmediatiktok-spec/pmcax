@@ -10,7 +10,10 @@ const userSchema = new mongoose.Schema({
   officerProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Officer' },
   canManageRoster: { type: Boolean, default: false },
   trangThai: { type: Boolean, default: true },
-  lastLogin: { type: Date }
+  lastLogin: { type: Date },
+  twoFactorSecret: { type: String },
+  twoFactorEnabled: { type: Boolean, default: false },
+  failedLoginAttempts: { type: Number, default: 0 }
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {

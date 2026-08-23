@@ -42,10 +42,15 @@
             <td><small class="text-muted"><%= u.lastLogin ? new Date(u.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập' %></small></td>
             <td>
               <div class="d-flex gap-1">
-                <a href="/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
+                <a href="/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-warning" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
                 <% if (u._id.toString() !== currentUser._id.toString()) { %>
+                <form action="/users/<%= u._id %>/toggle-lock" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm <%= u.trangThai ? 'btn-outline-secondary' : 'btn-outline-success' %>" title="<%= u.trangThai ? 'Khóa tài khoản' : 'Mở khóa tài khoản' %>">
+                    <i class="fas <%= u.trangThai ? 'fa-lock' : 'fa-unlock' %>"></i>
+                  </button>
+                </form>
                 <form action="/users/<%= u._id %>?_method=DELETE" method="POST" class="delete-form" data-confirm="Xóa tài khoản <%= u.username %>?">
-                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash"></i></button>
                 </form>
                 <% } %>
               </div>

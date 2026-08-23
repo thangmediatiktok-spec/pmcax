@@ -7,6 +7,8 @@ const { isAuthenticated } = require('../middleware/auth');
 const Officer = require('../models/Officer');
 const User = require('../models/User');
 const Team = require('../models/Team');
+const { authenticator } = require('otplib');
+const qrcode = require('qrcode');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -29,8 +31,11 @@ const upload = multer({
 });
 
 router.get('/', isAuthenticated, async (req, res) => {
-  // If user already has a profile or is admin, redirect to dashboard
+  // If user already has a profile or is admin, go to step 2 (2FA) or dashboard
   if (req.session.user.role === 'admin' || req.session.user.officerProfile) {
+    if (!req.session.user.twoFactorEnabled) {
+      return res.redirect('/onboarding/2fa');
+    }
     return res.redirect('/dashboard');
   }
 
@@ -47,6 +52,9 @@ router.get('/', isAuthenticated, async (req, res) => {
 
 router.post('/', isAuthenticated, upload.single('anhDaiDien'), async (req, res) => {
   if (req.session.user.role === 'admin' || req.session.user.officerProfile) {
+    if (!req.session.user.twoFactorEnabled) {
+      return res.redirect('/onboarding/2fa');
+    }
     return res.redirect('/dashboard');
   }
 
@@ -77,12 +85,58 @@ router.post('/', isAuthenticated, upload.single('anhDaiDien'), async (req, res) 
     // Update session
     req.session.user.officerProfile = newOfficer._id;
 
-    req.flash('success', 'Khai báo thông tin thành công!');
-    res.redirect('/dashboard');
+    req.flash('success', 'Khai báo thông tin thành công! Vui lòng thiết lập Bảo mật 2 lớp.');
+    res.redirect('/onboarding/2fa');
   } catch (err) {
     console.error(err);
     req.flash('error', err.code === 11000 ? 'Mã số đã tồn tại, vui lòng kiểm tra lại' : 'Lỗi lưu thông tin');
     res.redirect('/onboarding');
+  }
+});
+
+router.get('/2fa', isAuthenticated, async (req, res) => {
+  if (req.session.user.twoFactorEnabled) {
+    return res.redirect('/dashboard');
+  }
+  
+  const user = await User.findById(req.session.user._id);
+  
+  // Generate secret if not exists
+  if (!user.twoFactorSecret) {
+    user.twoFactorSecret = authenticator.generateSecret();
+    await user.save();
+  }
+
+  const otpauth = authenticator.keyuri(user.username, 'PMCAX', user.twoFactorSecret);
+  const qrCodeUrl = await qrcode.toDataURL(otpauth);
+
+  res.render('onboarding/2fa', {
+    title: 'Thiết lập bảo mật 2 lớp (2FA)',
+    qrCodeUrl,
+    secret: user.twoFactorSecret,
+    layout: false
+  });
+});
+
+router.post('/2fa/verify', isAuthenticated, async (req, res) => {
+  if (req.session.user.twoFactorEnabled) {
+    return res.redirect('/dashboard');
+  }
+
+  const { token } = req.body;
+  const user = await User.findById(req.session.user._id);
+
+  const isValid = authenticator.verify({ token, secret: user.twoFactorSecret });
+
+  if (isValid) {
+    user.twoFactorEnabled = true;
+    await user.save();
+    req.session.user.twoFactorEnabled = true;
+    req.flash('success', 'Thiết lập bảo mật 2 lớp (2FA) thành công!');
+    res.redirect('/dashboard');
+  } else {
+    req.flash('error', 'Mã xác nhận không chính xác. Vui lòng thử lại.');
+    res.redirect('/onboarding/2fa');
   }
 });
 

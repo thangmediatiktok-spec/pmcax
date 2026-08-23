@@ -62,4 +62,32 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
   res.redirect('/users');
 });
 
+router.post('/:id/toggle-lock', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      req.flash('error', 'Không tìm thấy tài khoản');
+      return res.redirect('/users');
+    }
+    
+    if (user._id.toString() === req.session.user._id.toString()) {
+      req.flash('error', 'Không thể tự khóa tài khoản của chính mình');
+      return res.redirect('/users');
+    }
+
+    user.trangThai = !user.trangThai;
+    if (user.trangThai) {
+      // If unlocking, reset failed attempts
+      user.failedLoginAttempts = 0;
+    }
+    
+    await user.save();
+    req.flash('success', user.trangThai ? `Đã mở khóa tài khoản ${user.username}` : `Đã khóa tài khoản ${user.username}`);
+    res.redirect('/users');
+  } catch (err) {
+    req.flash('error', 'Lỗi khi thay đổi trạng thái tài khoản');
+    res.redirect('/users');
+  }
+});
+
 module.exports = router;
