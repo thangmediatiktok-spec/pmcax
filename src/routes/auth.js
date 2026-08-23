@@ -39,7 +39,7 @@ router.post('/login', async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    if (user.twoFactorEnabled) {
+    if (req.app.locals.require2FA && user.twoFactorEnabled) {
       req.session.tempUserId = user._id;
       return res.redirect('/login/2fa');
     }

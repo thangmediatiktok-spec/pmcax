@@ -90,4 +90,24 @@ router.post('/:id/toggle-lock', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
+router.post('/:id/reset-2fa', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      req.flash('error', 'Không tìm thấy tài khoản');
+      return res.redirect('/users');
+    }
+    
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = null;
+    await user.save();
+    
+    req.flash('success', `Đã tắt tính năng 2FA cho tài khoản ${user.username}. Lần đăng nhập tiếp theo, người này sẽ phải cài đặt lại 2FA.`);
+    res.redirect('/users');
+  } catch (err) {
+    req.flash('error', 'Lỗi khi đặt lại 2FA');
+    res.redirect('/users');
+  }
+});
+
 module.exports = router;

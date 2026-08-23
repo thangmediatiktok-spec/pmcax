@@ -1,0 +1,37 @@
+<%- include('../partials/header', { activeMenu: 'settings' }) %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h5 class="fw-bold mb-0"><i class="fas fa-cogs text-secondary me-2"></i>Cấu hình hệ thống</h5>
+    <small class="text-muted">Quản lý các thiết lập chung của hệ thống</small>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-shield-alt text-success me-2"></i>Cấu hình Bảo mật</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h6 class="fw-bold mb-1">Xác thực 2 bước (2FA) Bắt Buộc</h6>
+            <p class="text-muted small mb-0">Khi BẬT, toàn bộ cán bộ phải sử dụng ứng dụng Google Authenticator để đăng nhập. Khi TẮT, hệ thống sẽ bỏ qua bước xác thực 2FA cho tất cả mọi người.</p>
+          </div>
+          <div class="ms-3">
+            <form action="/settings/2fa/toggle" method="POST" id="form-2fa">
+              <input type="hidden" name="require2FA" value="<%= require2FA ? 'false' : 'true' %>">
+              <div class="form-check form-switch" style="font-size: 1.5rem;">
+                <input class="form-check-input" type="checkbox" role="switch" id="switch2FA" <%= require2FA ? 'checked' : '' %> onchange="document.getElementById('form-2fa').submit()">
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

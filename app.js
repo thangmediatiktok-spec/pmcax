@@ -5,6 +5,7 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const morgan = require('morgan');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const connectDB = require('./src/config/database');
 
@@ -19,11 +20,11 @@ const onboardingRoutes = require('./src/routes/onboarding');
 const rostersRouter = require('./src/routes/rosters');
 const timesheetsRouter = require('./src/routes/timesheets');
 const adlTasksRoutes = require('./src/routes/adl-tasks');
+const settingsRoutes = require('./src/routes/settings');
+const Setting = require('./src/models/Setting');
 const backupRoutes = require('./src/routes/backup');
 
 const app = express();
-
-connectDB();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
@@ -61,6 +62,7 @@ app.use('/onboarding', onboardingRoutes);
 app.use('/rosters', rostersRouter);
 app.use('/timesheets', timesheetsRouter);
 app.use('/adl-tasks', adlTasksRoutes);
+app.use('/settings', settingsRoutes);
 app.use('/backup', backupRoutes);
 
 app.use((req, res) => {
@@ -68,6 +70,18 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server chạy tại http://localhost:${PORT}`);
-});
+mongoose.connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log('Kết nối MongoDB thành công');
+    const require2FASetting = await Setting.findOne({ key: 'GLOBAL_2FA_ENABLED' });
+    if (!require2FASetting) {
+      await Setting.create({ key: 'GLOBAL_2FA_ENABLED', value: true });
+      app.locals.require2FA = true;
+    } else {
+      app.locals.require2FA = require2FASetting.value;
+    }
+    app.listen(PORT, () => {
+      console.log(`Server chạy tại http://localhost:${PORT}`);
+    });
+  })
+  .catch(err => console.error('Lỗi kết nối MongoDB:', err));

@@ -9,7 +9,7 @@ const isAuthenticated = (req, res, next) => {
       return res.redirect('/onboarding');
     }
 
-    if (!req.session.user.twoFactorEnabled) {
+    if (req.app.locals.require2FA && !req.session.user.twoFactorEnabled) {
       req.flash('warning', 'Bắt buộc thiết lập bảo mật 2 lớp (2FA) bằng Google Authenticator.');
       return res.redirect('/onboarding/2fa');
     }

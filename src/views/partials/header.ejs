@@ -106,6 +106,7 @@
               <i class="fas fa-user-times me-2" style="font-size: 10px;"></i> Chưa nghỉ phép
             </a>
           </li>
+
           <li>
             <a href="/leaves/print-form" class="nav-link sidebar-link rounded mb-1 <%= locals.activeMenu === 'leaves_print' ? 'active' : 'text-secondary' %>" style="font-size: 13px;">
               <i class="fas fa-file-pdf me-2" style="font-size: 10px;"></i> Tạo đơn (PDF)
@@ -139,6 +140,12 @@
         <a href="/users" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'users' ? 'active' : '' %>">
           <i class="fas fa-users-cog" style="width:18px;text-align:center"></i>
           <span class="sidebar-text">Tài khoản</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/settings" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'settings' ? 'active' : '' %>">
+          <i class="fas fa-cogs" style="width:18px;text-align:center"></i>
+          <span class="sidebar-text">Cấu hình hệ thống</span>
         </a>
       </li>
       <li class="nav-item">

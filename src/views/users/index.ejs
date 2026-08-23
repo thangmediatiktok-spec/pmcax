@@ -44,6 +44,11 @@
               <div class="d-flex gap-1">
                 <a href="/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-warning" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
                 <% if (u._id.toString() !== currentUser._id.toString()) { %>
+                <form action="/users/<%= u._id %>/reset-2fa" method="POST" class="d-inline delete-form" data-confirm="Tắt 2FA cho <%= u.username %>? Người này sẽ phải quét mã QR mới vào lần đăng nhập tới.">
+                  <button type="submit" class="btn btn-sm btn-outline-info" title="Tắt 2FA (Reset Google Authenticator)">
+                    <i class="fas fa-mobile-alt"></i><i class="fas fa-slash fa-stack-1x" style="font-size:0.6em;color:red;opacity:0.8;"></i>
+                  </button>
+                </form>
                 <form action="/users/<%= u._id %>/toggle-lock" method="POST" class="d-inline">
                   <button type="submit" class="btn btn-sm <%= u.trangThai ? 'btn-outline-secondary' : 'btn-outline-success' %>" title="<%= u.trangThai ? 'Khóa tài khoản' : 'Mở khóa tài khoản' %>">
                     <i class="fas <%= u.trangThai ? 'fa-lock' : 'fa-unlock' %>"></i>
