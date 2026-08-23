@@ -1,0 +1,81 @@
+<%- include('../partials/header', { activeMenu: 'backup' }) %>
+<%- include('../partials/flash') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0 text-dark"><i class="fas fa-database text-warning me-2"></i>Sao lưu & Phục hồi dữ liệu</h4>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h5 class="fw-bold text-success"><i class="fas fa-download me-2"></i>Sao lưu (Backup)</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Tính năng này sẽ nén toàn bộ Cơ sở dữ liệu, Danh sách tài khoản, Hồ sơ CBCS, Hình ảnh đại diện và Tài liệu PDF đính kèm thành một file `.zip` để tải về máy tính.</p>
+        <p class="text-muted mb-4">Việc sao lưu định kỳ giúp hệ thống an toàn, phòng tránh rủi ro mất mát dữ liệu.</p>
+        <div class="text-center mt-auto">
+          <a href="/backup/export" class="btn btn-success px-4 py-2 fw-semibold" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin me-2\'></i>Đang nén dữ liệu...'"><i class="fas fa-file-archive me-2"></i>Tải file sao lưu (.zip)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h5 class="fw-bold text-danger"><i class="fas fa-upload me-2"></i>Phục hồi (Restore)</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger py-2">
+          <i class="fas fa-exclamation-triangle me-2"></i><strong>LƯU Ý NGHIÊM TRỌNG:</strong> 
+          Hành động này sẽ <strong>xóa toàn bộ</strong> dữ liệu hiện tại đang có trên hệ thống và ghi đè bằng dữ liệu từ file Backup mà bạn tải lên.
+        </div>
+        <form action="/backup/import" method="POST" enctype="multipart/form-data" id="restoreForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Chọn file sao lưu (.zip)</label>
+            <input type="file" name="backupFile" class="form-control" accept=".zip" required>
+          </div>
+          <div class="text-center mt-3">
+            <button type="button" class="btn btn-danger px-4 py-2 fw-semibold" onclick="confirmRestore()"><i class="fas fa-history me-2"></i>Tiến hành phục hồi</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmRestore() {
+  const fileInput = document.querySelector('input[name="backupFile"]');
+  if (!fileInput.files.length) {
+    Swal.fire('Lỗi', 'Vui lòng chọn file sao lưu!', 'error');
+    return;
+  }
+  
+  Swal.fire({
+    title: 'CẢNH BÁO NGUY HIỂM!',
+    text: "Bạn có chắc chắn muốn ghi đè toàn bộ dữ liệu? Toàn bộ dữ liệu hiện tại sẽ bị xóa sạch và không thể khôi phục lại!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Có, tôi chấp nhận rủi ro',
+    cancelButtonText: 'Hủy bỏ'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById('restoreForm').submit();
+      Swal.fire({
+        title: 'Đang phục hồi...',
+        text: 'Vui lòng không đóng trình duyệt, hệ thống sẽ tự động đăng xuất sau khi xong.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

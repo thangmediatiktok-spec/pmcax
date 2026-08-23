@@ -19,6 +19,7 @@ const onboardingRoutes = require('./src/routes/onboarding');
 const rostersRouter = require('./src/routes/rosters');
 const timesheetsRouter = require('./src/routes/timesheets');
 const adlTasksRoutes = require('./src/routes/adl-tasks');
+const backupRoutes = require('./src/routes/backup');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/onboarding', onboardingRoutes);
 app.use('/rosters', rostersRouter);
 app.use('/timesheets', timesheetsRouter);
 app.use('/adl-tasks', adlTasksRoutes);
+app.use('/backup', backupRoutes);
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Không tìm thấy trang' });
