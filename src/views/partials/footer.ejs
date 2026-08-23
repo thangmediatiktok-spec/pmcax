@@ -147,12 +147,22 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Sidebar toggle for desktop
+  // Sidebar toggle for desktop and mobile
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  
   document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-    const sidebar = document.getElementById('sidebar');
     if (window.innerWidth > 767.98) {
       sidebar.classList.toggle('sidebar-collapsed');
+    } else {
+      sidebar.classList.toggle('show');
+      backdrop.classList.toggle('show');
     }
+  });
+
+  backdrop?.addEventListener('click', () => {
+    sidebar.classList.remove('show');
+    backdrop.classList.remove('show');
   });
 </script>
 </body>
