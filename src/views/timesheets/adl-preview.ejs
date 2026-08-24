@@ -126,10 +126,42 @@
           <textarea id="editResult" class="form-control shadow-sm" rows="4"></textarea>
         </div>
         
-        <div class="d-flex justify-content-end gap-2 mt-4">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="saveADL()"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <% if (hasTasks) { %>
+          <button type="button" class="btn btn-outline-primary shadow-sm" onclick="randomSingleTask()"><i class="fas fa-dice me-2"></i>Random công việc</button>
+          <% } else { %>
+          <div></div>
+          <% } %>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="saveADL()"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function randomSingleTask() {
+    if (typeof teamTasks === 'undefined' || teamTasks.length === 0) return;
+    const randomTask = teamTasks[Math.floor(Math.random() * teamTasks.length)];
+    document.getElementById('editPlan').value = randomTask.plan;
+    document.getElementById('editResult').value = randomTask.result;
+  }
+</script>
+
+<!-- Modal Thông báo lưu thành công -->
+<div class="modal fade" id="saveSuccessModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow text-center">
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <i class="fas fa-check-circle text-success" style="font-size: 3.5rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Lưu Thành Công</h5>
+        <p class="text-muted small mb-4">Toàn bộ dữ liệu Bảng định lượng ăn đã được cập nhật vào hệ thống một cách an toàn.</p>
+        <button type="button" class="btn btn-success w-100 fw-bold shadow-sm rounded-pill" data-bs-dismiss="modal">Tuyệt vời</button>
       </div>
     </div>
   </div>
@@ -182,16 +214,8 @@
         btn.innerHTML = originalText;
         btn.disabled = false;
         if (res.success) {
-          alert('Đã lưu toàn bộ dữ liệu thành công!');
-          // Change all "TỰ ĐỘNG" badges to "ĐÃ SỬA" since they are now saved in DB
-          document.querySelectorAll('#adlTable tbody tr').forEach(tr => {
-            const badge = tr.querySelector('td:nth-child(2) .badge');
-            if (badge && badge.classList.contains('bg-secondary')) {
-              badge.classList.remove('bg-secondary');
-              badge.classList.add('bg-primary');
-              badge.innerText = 'ĐÃ SỬA';
-            }
-          });
+          const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+          successModal.show();
         } else {
           alert('Lỗi khi lưu: ' + res.error);
         }
