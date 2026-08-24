@@ -91,7 +91,7 @@ router.get('/test-telegram', isAuthenticated, async (req, res) => {
   try {
     const result = await runTelegramCheck();
     if (result.success) {
-      req.flash('success', 'Đã chạy lệnh rà soát công việc và gửi qua Telegram thành công!');
+      req.flash('success', result.message);
     } else {
       req.flash('error', result.message || 'Có lỗi xảy ra khi test Telegram');
     }
