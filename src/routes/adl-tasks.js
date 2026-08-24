@@ -39,10 +39,12 @@ router.get('/', async (req, res) => {
     tasks.forEach(task => {
       let basePlan = task.plan.replace(villageRegex, '[THON]').replace(timeRegex, '[GIO]');
       let baseResult = task.result.replace(villageRegex, '[THON]').replace(timeRegex, '[GIO]');
-      const key = basePlan + '|||' + baseResult;
+      const taskType = task.type || 'A';
+      const key = taskType + '|||' + basePlan + '|||' + baseResult;
       
       if (!groupsMap[key]) {
         groupsMap[key] = {
+          type: taskType,
           basePlan,
           baseResult,
           tasks: []
@@ -71,7 +73,8 @@ router.get('/', async (req, res) => {
 // POST /adl-tasks
 router.post('/', async (req, res) => {
   try {
-    const { team, plan, result, bulk_generate, villages, times } = req.body;
+    const { team, plan, result, type, bulk_generate, villages, times } = req.body;
+    const taskType = type || 'A';
     
     if (bulk_generate === 'on') {
       let selectedVillages = [];
@@ -97,21 +100,21 @@ router.post('/', async (req, res) => {
             p = p.replace(/\[GIO\]/g, t);
             r = r.replace(/\[GIO\]/g, t);
           }
-          tasksToCreate.push({ team, plan: p, result: r });
+          tasksToCreate.push({ team, plan: p, result: r, type: taskType });
         });
       });
       
       if (tasksToCreate.length > 0 && (tasksToCreate.length > 1 || tasksToCreate[0].plan !== plan)) {
         await AdlTask.insertMany(tasksToCreate);
-        req.flash('success', `Đã sinh tự động ${tasksToCreate.length} công việc ADL mới.`);
+        req.flash('success', `Đã sinh tự động ${tasksToCreate.length} công việc mới.`);
       } else {
-        await AdlTask.create({ team, plan, result });
-        req.flash('success', 'Đã thêm công việc ADL mới.');
+        await AdlTask.create({ team, plan, result, type: taskType });
+        req.flash('success', 'Đã thêm công việc mới.');
       }
     } else {
       // Single create
-      await AdlTask.create({ team, plan, result });
-      req.flash('success', 'Đã thêm công việc ADL mới.');
+      await AdlTask.create({ team, plan, result, type: taskType });
+      req.flash('success', 'Đã thêm công việc mới.');
     }
     
     res.redirect(`/adl-tasks?teamId=${team}`);
@@ -125,8 +128,8 @@ router.post('/', async (req, res) => {
 // PUT /adl-tasks/:id
 router.put('/:id', async (req, res) => {
   try {
-    const { plan, result } = req.body;
-    const task = await AdlTask.findByIdAndUpdate(req.params.id, { plan, result }, { new: true });
+    const { plan, result, type } = req.body;
+    const task = await AdlTask.findByIdAndUpdate(req.params.id, { plan, result, type }, { new: true });
     req.flash('success', 'Đã cập nhật công việc.');
     res.redirect(`/adl-tasks?teamId=${task.team}`);
   } catch (error) {

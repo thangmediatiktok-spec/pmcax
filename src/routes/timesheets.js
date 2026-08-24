@@ -359,7 +359,9 @@ router.get('/:id/adl-preview', isAuthenticated, async (req, res) => {
     
     // Fetch ADL Tasks for this officer's team
     const AdlTask = require('../models/AdlTask');
-    const teamTasks = await AdlTask.find({ team: officer.toCongTac });
+    const allTasks = await AdlTask.find({ team: officer.toCongTac });
+    const teamTasks = allTasks.filter(t => !t.type || t.type === 'A');
+    const ctTasks = allTasks.filter(t => t.type === 'CT-A');
 
     // Seed logic for deterministic random
     function seededRand(seed) {
@@ -376,15 +378,27 @@ router.get('/:id/adl-preview', isAuthenticated, async (req, res) => {
         if (r.code === 'A') {
           if (teamTasks.length > 0) {
             const idx = Math.floor(seededRand(r.day) * teamTasks.length);
-            r.adlPlan = teamTasks[idx].plan;
-            r.adlResult = teamTasks[idx].result;
+            const randSo = Math.floor(seededRand(r.day + 999) * 61) + 20;
+            const randDt = Math.floor(seededRand(r.day + 888) * 5) + 1;
+            let p = teamTasks[idx].plan.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+            let res = teamTasks[idx].result.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+            r.adlPlan = p;
+            r.adlResult = res;
           } else {
             r.adlPlan = ''; // Để trống cho người dùng gõ
             r.adlResult = '';
           }
         } else if (r.code === 'CT-A') {
           r.adlPlan = `Đi công tác tại ${r.note || 'địa bàn'}`;
-          r.adlResult = `Từ 07h30 đến 17h30 công tác tại ${r.note || 'địa bàn'} để xác minh đối tượng`;
+          if (ctTasks.length > 0) {
+            const idx = Math.floor(seededRand(r.day) * ctTasks.length);
+            const randSo = Math.floor(seededRand(r.day + 999) * 61) + 20;
+            const randDt = Math.floor(seededRand(r.day + 888) * 5) + 1;
+            let res = ctTasks[idx].result.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt).replace(/\[XACT\]/g, r.note || 'địa bàn');
+            r.adlResult = res;
+          } else {
+            r.adlResult = `Từ 07h30 đến 17h30 công tác tại ${r.note || 'địa bàn'} để xác minh đối tượng`;
+          }
         }
       }
     });
@@ -397,7 +411,9 @@ router.get('/:id/adl-preview', isAuthenticated, async (req, res) => {
       timesheet,
       adlRecords,
       hasTasks: teamTasks.length > 0,
-      teamTasksJson: JSON.stringify(teamTasks)
+      hasCtTasks: ctTasks.length > 0,
+      teamTasksJson: JSON.stringify(teamTasks),
+      ctTasksJson: JSON.stringify(ctTasks)
     });
   } catch (err) {
     console.error(err);

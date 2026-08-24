@@ -6,7 +6,12 @@
     <h5 class="fw-bold mb-0"><i class="fas fa-users-cog text-danger me-2"></i>Tài khoản hệ thống</h5>
     <small class="text-muted">Quản lý tài khoản và phân quyền truy cập</small>
   </div>
-  <a href="/users/create" class="btn btn-danger btn-sm"><i class="fas fa-plus me-1"></i>Thêm tài khoản</a>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+      <i class="fas fa-file-excel me-1"></i>Nhập từ Excel
+    </button>
+    <a href="/users/create" class="btn btn-danger btn-sm"><i class="fas fa-plus me-1"></i>Thêm tài khoản</a>
+  </div>
 </div>
 
 <!-- Mobile List View -->
@@ -124,6 +129,39 @@
           <% }) %>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- Import Excel Modal -->
+<div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/users/import-excel" method="POST" enctype="multipart/form-data">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="importExcelModalLabel"><i class="fas fa-file-excel me-2"></i>Nhập tài khoản từ Excel</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="excelFile" class="form-label fw-bold">Chọn file Excel (.xlsx)</label>
+            <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
+          </div>
+          <div class="alert alert-info mb-0 small">
+            <i class="fas fa-info-circle me-1"></i>Vui lòng sử dụng file mẫu chuẩn của hệ thống để nhập dữ liệu. 
+            Nếu bạn chưa có file mẫu, hãy tải về tại đây:
+            <div class="mt-2 text-center">
+              <a href="/users/template-excel" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-download me-1"></i>Tải file Excel mẫu
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-upload me-1"></i>Nhập dữ liệu</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

@@ -9,6 +9,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -55,7 +56,15 @@
               <i class="fas fa-dice me-1"></i>Random Công việc A
             </button>
           <% } %>
-          <button type="button" class="btn btn-sm btn-primary fw-semibold" onclick="saveAllADL()">
+          <% if (typeof hasCtTasks !== 'undefined' && hasCtTasks) { %>
+            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" onclick="randomizeCtTasks()">
+              <i class="fas fa-dice me-1"></i>Random Công tác
+            </button>
+          <% } %>
+          <button type="button" class="btn btn-sm btn-outline-warning fw-semibold" onclick="unlockRandom()">
+            <i class="fas fa-unlock me-1"></i>Mở khóa Random lại
+          </button>
+          <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnSaveAll" onclick="confirmSaveAllADL()">
             <i class="fas fa-save me-1"></i>Lưu toàn bộ
           </button>
         </div>
@@ -74,7 +83,7 @@
               </thead>
               <tbody>
                 <% adlRecords.forEach(r => { %>
-                  <tr data-day="<%= r.day %>" data-plan="<%= r.adlPlan %>" data-result="<%= r.adlResult %>">
+                  <tr data-day="<%= r.day %>" data-plan="<%= r.adlPlan %>" data-result="<%= r.adlResult %>" data-note="<%= r.note || '' %>">
                     <td class="text-center fw-bold">
                       <%= r.day %>/<%= String(timesheet.month).padStart(2,'0') %>
                       <div class="small fw-normal text-muted"><%= r.code %></div>
@@ -127,11 +136,7 @@
         </div>
         
         <div class="d-flex justify-content-between align-items-center mt-4">
-          <% if (hasTasks) { %>
           <button type="button" class="btn btn-outline-primary shadow-sm" onclick="randomSingleTask()"><i class="fas fa-dice me-2"></i>Random công việc</button>
-          <% } else { %>
-          <div></div>
-          <% } %>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
             <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="saveADL()"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
@@ -144,10 +149,7 @@
 
 <script>
   function randomSingleTask() {
-    if (typeof teamTasks === 'undefined' || teamTasks.length === 0) return;
-    const randomTask = teamTasks[Math.floor(Math.random() * teamTasks.length)];
-    document.getElementById('editPlan').value = randomTask.plan;
-    document.getElementById('editResult').value = randomTask.result;
+    // Moved to main script block to access variables and logic correctly
   }
 </script>
 
@@ -172,6 +174,11 @@
     <% if (typeof teamTasksJson !== 'undefined') { %>
       teamTasks = <%- teamTasksJson %>;
     <% } %>
+    
+    let ctTasks = [];
+    <% if (typeof ctTasksJson !== 'undefined') { %>
+      ctTasks = <%- ctTasksJson %>;
+    <% } %>
 
     function randomizeATasks() {
       if (teamTasks.length === 0) return;
@@ -183,17 +190,114 @@
           const badgeText = tr.querySelector('td:nth-child(2) .badge').innerText.trim();
           if (badgeText !== 'ĐÃ SỬA') {
             const randomTask = teamTasks[Math.floor(Math.random() * teamTasks.length)];
-            tr.setAttribute('data-plan', randomTask.plan);
-            tr.setAttribute('data-result', randomTask.result);
-            document.getElementById(`display-plan-${tr.getAttribute('data-day')}`).innerText = randomTask.plan;
-            document.getElementById(`display-result-${tr.getAttribute('data-day')}`).innerText = randomTask.result;
+            const randSo = Math.floor(Math.random() * 61) + 20;
+            const randDt = Math.floor(Math.random() * 5) + 1;
+            const p = randomTask.plan.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+            const r = randomTask.result.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+            tr.setAttribute('data-plan', p);
+            tr.setAttribute('data-result', r);
+            document.getElementById(`display-plan-${tr.getAttribute('data-day')}`).innerText = p;
+            document.getElementById(`display-result-${tr.getAttribute('data-day')}`).innerText = r;
           }
         }
       });
     }
 
-    function saveAllADL() {
-      const btn = event.currentTarget;
+    function randomizeCtTasks() {
+      if (ctTasks.length === 0) return;
+      const rows = document.querySelectorAll('#adlTable tbody tr');
+      rows.forEach(tr => {
+        const codeText = tr.querySelector('td:first-child div').innerText.trim();
+        if (codeText === 'CT-A') {
+          const badgeText = tr.querySelector('td:nth-child(2) .badge').innerText.trim();
+          if (badgeText !== 'ĐÃ SỬA') {
+            const randomTask = ctTasks[Math.floor(Math.random() * ctTasks.length)];
+            const randSo = Math.floor(Math.random() * 61) + 20;
+            const randDt = Math.floor(Math.random() * 5) + 1;
+            const note = tr.getAttribute('data-note') || 'địa bàn';
+            const p = `Đi công tác tại ${note}`;
+            const r = randomTask.result.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt).replace(/\[XACT\]/g, note);
+            tr.setAttribute('data-plan', p);
+            tr.setAttribute('data-result', r);
+            document.getElementById(`display-plan-${tr.getAttribute('data-day')}`).innerText = p;
+            document.getElementById(`display-result-${tr.getAttribute('data-day')}`).innerText = r;
+          }
+        }
+      });
+    }
+
+    function randomSingleTask() {
+      const day = document.getElementById('editDay').value;
+      const tr = document.querySelector(`tr[data-day="${day}"]`);
+      const codeText = tr.querySelector('td:first-child div').innerText.trim();
+      const note = tr.getAttribute('data-note') || 'địa bàn';
+      
+      let pool = codeText === 'CT-A' ? ctTasks : teamTasks;
+      if (!pool || pool.length === 0) return;
+      
+      const randomTask = pool[Math.floor(Math.random() * pool.length)];
+      const randSo = Math.floor(Math.random() * 61) + 20;
+      const randDt = Math.floor(Math.random() * 5) + 1;
+      let p = randomTask.plan.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+      let r = randomTask.result.replace(/\[SO\]/g, randSo).replace(/\[DT\]/g, randDt);
+      
+      if (codeText === 'CT-A') {
+        p = `Đi công tác tại ${note}`;
+        r = r.replace(/\[XACT\]/g, note);
+      }
+      
+      document.getElementById('editPlan').value = p;
+      document.getElementById('editResult').value = r;
+    }
+
+    function unlockRandom() {
+      Swal.fire({
+        title: 'Mở khóa Random?',
+        text: 'Thao tác này sẽ cho phép Random lại toàn bộ bảng. Các dòng bạn đã gõ tay cũng sẽ bị random đè lên. Bạn có muốn tiếp tục?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Vâng, Mở khóa và Random lại!',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.querySelectorAll('#adlTable tbody tr').forEach(tr => {
+            const badgeDiv = tr.querySelector('td:nth-child(2) .badge');
+            if (badgeDiv && badgeDiv.innerText.trim() === 'ĐÃ SỬA') {
+              badgeDiv.className = 'badge bg-secondary';
+              badgeDiv.innerText = 'TỰ ĐỘNG';
+            }
+          });
+          
+          // Tự động kích hoạt random lại cho tiện
+          if (typeof randomizeATasks === 'function') randomizeATasks();
+          if (typeof randomizeCtTasks === 'function') randomizeCtTasks();
+
+          Swal.fire('Thành công!', 'Bảng đã được mở khóa và Random lại theo cấu hình mới nhất.', 'success');
+        }
+      });
+    }
+
+    function confirmSaveAllADL() {
+      Swal.fire({
+        title: 'Lưu bảng định lượng?',
+        text: 'Dữ liệu cũ trên hệ thống sẽ bị ghi đè bằng dữ liệu hiện tại trên màn hình. Bạn có chắc chắn muốn lưu?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Đồng ý, Lưu ngay!',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          executeSaveAllADL();
+        }
+      });
+    }
+
+    function executeSaveAllADL() {
+      const btn = document.getElementById('btnSaveAll');
       const originalText = btn.innerHTML;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang lưu...';
       btn.disabled = true;

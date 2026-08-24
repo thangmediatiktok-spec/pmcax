@@ -36,7 +36,14 @@
             <h2 class="accordion-header" id="heading<%= gIdx %>">
               <button class="accordion-button collapsed shadow-none fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= gIdx %>">
                 <div class="d-flex w-100 justify-content-between align-items-center me-3">
-                  <span class="text-primary me-2"><%= group.basePlan %></span>
+                  <span class="text-primary me-2">
+                    <% if (group.type === 'CT-A') { %>
+                      <span class="badge bg-danger me-1">CÔNG TÁC</span>
+                    <% } else { %>
+                      <span class="badge bg-primary me-1">LÀM VIỆC</span>
+                    <% } %>
+                    <%= group.basePlan %>
+                  </span>
                   <span class="badge bg-secondary rounded-pill text-nowrap"><%= group.tasks.length %> Thôn</span>
                 </div>
               </button>
@@ -56,7 +63,7 @@
                         <div class="fw-bold text-dark mb-1" style="font-size: 13px;"><i class="fas fa-tasks me-1 text-primary"></i> <%= t.plan %></div>
                         <div class="text-muted small mb-3"><i class="fas fa-check-double me-1 text-success"></i> <%= t.result %></div>
                         <div class="d-flex gap-2">
-                          <button class="btn btn-sm btn-outline-warning flex-grow-1" onclick="editTask('<%= t._id %>', `<%= t.plan.replace(/`/g, '\\`') %>`, `<%= t.result.replace(/`/g, '\\`') %>`)"><i class="fas fa-edit"></i> Sửa</button>
+                          <button class="btn btn-sm btn-outline-warning flex-grow-1" onclick="editTask('<%= t._id %>', `<%= t.plan.replace(/`/g, '\\`') %>`, `<%= t.result.replace(/`/g, '\\`') %>`, '<%= t.type || 'A' %>')"><i class="fas fa-edit"></i> Sửa</button>
                           <button class="btn btn-sm btn-outline-danger flex-grow-1" onclick="deleteTask('<%= t._id %>')"><i class="fas fa-trash-alt"></i> Xóa</button>
                         </div>
                       </div>
@@ -86,7 +93,7 @@
                           <td class="text-center pe-3">
                             <div class="btn-group shadow-sm">
                               <button class="btn btn-sm btn-light border text-primary" title="Sửa" 
-                                onclick="editTask('<%= t._id %>', `<%= t.plan.replace(/`/g, '\\`') %>`, `<%= t.result.replace(/`/g, '\\`') %>`)">
+                                onclick="editTask('<%= t._id %>', `<%= t.plan.replace(/`/g, '\\`') %>`, `<%= t.result.replace(/`/g, '\\`') %>`, '<%= t.type || 'A' %>')">
                                 <i class="fas fa-edit"></i>
                               </button>
                               <button class="btn btn-sm btn-light border text-danger" title="Xóa" onclick="deleteTask('<%= t._id %>')">
@@ -122,10 +129,17 @@
           
           <div class="alert alert-info small border-0 py-2 mb-3">
             <i class="fas fa-lightbulb me-2 text-warning"></i>
-            <strong>Mẹo:</strong> Bạn có thể gõ <strong>[THON]</strong> vào nội dung để hệ thống tự động điền tên các Thôn/Bản.
+            <strong>Mẹo:</strong> Các biến tự động: <strong>[THON]</strong> (tên ngẫu nhiên Thôn/Bản), <strong>[SO]</strong> (số ngẫu nhiên 20-80), <strong>[DT]</strong> (số ngẫu nhiên 1-5), <strong>[XACT]</strong> (nơi công tác trong bảng chấm công - chỉ dùng cho CT-A).
           </div>
 
           <div class="mb-3">
+            <label class="form-label fw-bold">Loại nhiệm vụ</label>
+            <select name="type" class="form-select shadow-sm" onchange="toggleTaskType(this, 'addPlanContainer')">
+              <option value="A">Làm việc tại đơn vị/địa bàn (A)</option>
+              <option value="CT-A">Đi công tác xác minh (CT-A)</option>
+            </select>
+          </div>
+          <div class="mb-3" id="addPlanContainer">
             <label class="form-label fw-bold">Kế hoạch công tác</label>
             <textarea name="plan" class="form-control shadow-sm" rows="3" placeholder="VD: Tuần tra tại [THON]" required></textarea>
           </div>
@@ -202,6 +216,13 @@
       <form id="editForm" method="POST">
         <div class="modal-body p-4 bg-light">
           <div class="mb-3">
+            <label class="form-label fw-bold">Loại nhiệm vụ</label>
+            <select name="type" id="editType" class="form-select shadow-sm" onchange="toggleTaskType(this, 'editPlanContainer')">
+              <option value="A">Làm việc tại đơn vị/địa bàn (A)</option>
+              <option value="CT-A">Đi công tác xác minh (CT-A)</option>
+            </select>
+          </div>
+          <div class="mb-3" id="editPlanContainer">
             <label class="form-label fw-bold">Kế hoạch công tác</label>
             <textarea name="plan" id="editPlan" class="form-control shadow-sm" rows="3" required></textarea>
           </div>
@@ -232,10 +253,12 @@
     editModal = new bootstrap.Modal(document.getElementById('editAdlTaskModal'));
   });
 
-  function editTask(id, plan, result) {
+  function editTask(id, plan, result, type) {
     document.getElementById('editForm').action = `/adl-tasks/${id}?_method=PUT`;
     document.getElementById('editPlan').value = plan;
     document.getElementById('editResult').value = result;
+    document.getElementById('editType').value = type;
+    toggleTaskType(document.getElementById('editType'), 'editPlanContainer');
     editModal.show();
   }
 
@@ -295,6 +318,23 @@
   function checkAllVillages(check) {
     const checkboxes = document.querySelectorAll('.village-check');
     checkboxes.forEach(cb => cb.checked = check);
+  }
+
+  function toggleTaskType(selectElement, planContainerId) {
+    const planContainer = document.getElementById(planContainerId);
+    const textarea = planContainer.querySelector('textarea');
+    if (selectElement.value === 'CT-A') {
+      planContainer.style.display = 'none';
+      if (!textarea.dataset.originalValue) {
+        textarea.dataset.originalValue = textarea.value;
+      }
+      textarea.value = 'Mặc định theo ghi chú của bảng chấm công';
+    } else {
+      planContainer.style.display = 'block';
+      if (textarea.value === 'Mặc định theo ghi chú của bảng chấm công') {
+        textarea.value = textarea.dataset.originalValue || '';
+      }
+    }
   }
 </script>
 

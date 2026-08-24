@@ -15,6 +15,11 @@ const adlTaskSchema = new mongoose.Schema({
     type: String, 
     required: true,
     trim: true 
+  },
+  type: {
+    type: String,
+    enum: ['A', 'CT-A'],
+    default: 'A'
   }
 }, { timestamps: true });
 
