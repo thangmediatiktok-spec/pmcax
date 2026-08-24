@@ -213,12 +213,16 @@ const handleViewCv = async (chatId, username) => {
 
     const tasks = await WorkTask.find(query).populate('assignee').sort({ dueDate: 1, createdAt: -1 });
 
+    const thoiGian = moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY');
     if (tasks.length === 0) {
       await bot.sendMessage(chatId, `✅ <b>${officerNameDisplay}</b> hiện không có công việc nào đang chờ thực hiện.`, { parse_mode: 'HTML' });
       return;
     }
 
-    let message = `📋 <b>DANH SÁCH CÔNG VIỆC ĐANG CHỜ (${officerNameDisplay})</b>\n\n`;
+    let message = `📋 <b>DANH SÁCH CÔNG VIỆC ĐANG CHỜ (${officerNameDisplay})</b>
+🕐 <i>Cập nhật lúc: ${thoiGian}</i>
+
+`;
     const today = moment().startOf('day');
 
     tasks.forEach((task, index) => {
@@ -273,7 +277,10 @@ const handleDanhBa = async (chatId, username) => {
       return;
     }
     
-    let message = `📞 <b>KẾT QUẢ TRA CỨU DANH BẠ</b>\n\n`;
+    let message = `📞 <b>KẾT QUẢ TRA CỨU DANH BẠ</b>
+🕐 <i>Cập nhật lúc: ${moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY')}</i>
+
+`;
     matchedOfficers.forEach(o => {
       message += `👤 <b>${o.capBac || ''} ${o.hoTen}</b>\n`;
       message += `🔹 Chức vụ: ${o.chucVu}\n`;
@@ -309,7 +316,10 @@ const handleNghiPhep = async (chatId, username) => {
         return;
       }
       
-      let message = `🏖️ <b>THÔNG TIN NGHỈ PHÉP</b>\n\n`;
+      let message = `🏖️ <b>THÔNG TIN NGHỈ PHÉP</b>
+🕐 <i>Cập nhật lúc: ${moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY')}</i>
+
+`;
       filteredLeaves.forEach(l => {
         message += `👤 Đ/c: <b>${l.officer.capBac} ${l.officer.hoTen}</b>\n`;
         message += `🔹 Loại phép: ${l.loaiPhep}\n`;
@@ -325,7 +335,10 @@ const handleNghiPhep = async (chatId, username) => {
       return;
     }
     
-    let message = `🏖️ <b>DANH SÁCH NGHỈ PHÉP HÔM NAY</b>\n\n`;
+    let message = `🏖️ <b>DANH SÁCH NGHỈ PHÉP HÔM NAY</b>
+🕐 <i>Cập nhật lúc: ${moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY')}</i>
+
+`;
     leaves.forEach((l, i) => {
       message += `${i+1}. <b>${l.officer.hoTen}</b> (${l.loaiPhep})\n   Đến hết: ${moment(l.denNgay).format('DD/MM/YYYY')}\n`;
     });
@@ -367,7 +380,10 @@ const handleLichTruc = async (chatId, param) => {
     
     const formatNames = (officers) => officers.map(o => `${o.capBac || ''} ${o.hoTen}`).join(', ') || 'Chưa phân công';
     
-    let message = `🛡️ <b>LỊCH TRỰC ${dateStr} (${targetDate.format('DD/MM/YYYY')})</b>\n\n`;
+    let message = `🛡️ <b>LỊCH TRỰC ${dateStr} (${targetDate.format('DD/MM/YYYY')})</b>
+🕐 <i>Cập nhật lúc: ${moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY')}</i>
+
+`;
     message += `👮‍♂️ <b>Trực Chỉ Huy:</b>\n- ${formatNames(dayData.trucChiHuy)}\n\n`;
     message += `☀️ <b>Trực Ban Ngày:</b>\n- ${formatNames(dayData.trucBanNgay)}\n\n`;
     message += `🌙 <b>Trực Ban Đêm:</b>\n- ${formatNames(dayData.trucBanDem)}\n`;
@@ -434,7 +450,10 @@ const handleHdsd = async (chatId) => {
   try {
     const commands = await TelegramCommand.find({ isActive: true }).sort({ type: 1, command: 1 });
     
-    let message = `🤖 <b>HƯỚNG DẪN SỬ DỤNG BOT</b>\n\n`;
+    let message = `🤖 <b>HƯỚNG DẪN SỬ DỤNG BOT</b>
+🕐 <i>Cập nhật lúc: ${moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY')}</i>
+
+`;
     message += `Dưới đây là danh sách các câu lệnh bạn có thể sử dụng (chỉ cần gõ lệnh và gửi vào nhóm):\n\n`;
     
     const dynamicCmds = commands.filter(c => c.type === 'dynamic');
