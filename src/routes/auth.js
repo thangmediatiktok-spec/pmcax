@@ -37,6 +37,7 @@ router.post('/login', async (req, res) => {
     }
 
     user.lastLogin = new Date();
+    user.failedLoginAttempts = 0;
     await user.save();
 
     if (req.app.locals.require2FA && user.twoFactorEnabled) {
