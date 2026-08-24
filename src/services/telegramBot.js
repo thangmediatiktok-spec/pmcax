@@ -417,6 +417,25 @@ const handleHdsd = async (chatId) => {
   }
 };
 
+// Hàm gửi tin nhắn chủ động vào Group (Dùng cho thông báo giao việc, duyệt phép...)
+const sendToGroup = async (message) => {
+  if (!bot) {
+    console.log('Bot chưa được khởi tạo, không thể gửi tin nhắn.');
+    return;
+  }
+  const groupChatId = process.env.TELEGRAM_CHAT_ID;
+  if (!groupChatId) {
+    console.log('Chưa cấu hình TELEGRAM_CHAT_ID.');
+    return;
+  }
+  try {
+    await bot.sendMessage(groupChatId, message, { parse_mode: 'HTML' });
+  } catch (err) {
+    console.error('Lỗi khi gửi tin nhắn Telegram chủ động:', err);
+  }
+};
+
 module.exports = {
-  initTelegramBot
+  initTelegramBot,
+  sendToGroup
 };

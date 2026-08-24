@@ -232,13 +232,35 @@
               </select>
             </div>
             <% if (currentUser && currentUser.role !== 'cbcs') { %>
-            <div class="col-6">
-              <label class="form-label fw-semibold small text-muted">Người được giao</label>
-              <select class="form-select" name="assignee">
-                <option value="">-- Chọn cán bộ --</option>
+            <div class="col-12 mt-3 mb-1">
+              <label class="form-label fw-semibold small text-muted d-block mb-2">Hình thức giao việc</label>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="assignType" id="assignIndividual" value="individual" checked onchange="toggleAssignType()">
+                <label class="form-check-label small" for="assignIndividual">Giao cho Cá nhân</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="assignType" id="assignTeam" value="team" onchange="toggleAssignType()">
+                <label class="form-check-label small" for="assignTeam">Giao cho Tổ công tác</label>
+              </div>
+            </div>
+
+            <div class="col-12 mt-2" id="divAssignIndividual">
+              <label class="form-label fw-semibold small text-muted">Người được giao (Có thể chọn nhiều)</label>
+              <select class="form-select" name="assignees" multiple size="4">
                 <% officers.forEach(officer => { %>
                   <option value="<%= officer._id %>"><%= officer.capBac %> <%= officer.hoTen %></option>
                 <% }) %>
+              </select>
+              <div class="form-text" style="font-size: 11px;">Mẹo: Giữ phím Ctrl (hoặc Cmd trên máy Mac) để chọn nhiều người cùng lúc.</div>
+            </div>
+
+            <div class="col-12 mt-2" id="divAssignTeam" style="display: none;">
+              <label class="form-label fw-semibold small text-muted">Tổ công tác</label>
+              <select class="form-select" name="assignTeam">
+                <option value="">-- Chọn Tổ công tác --</option>
+                <% if(typeof teams !== 'undefined') { teams.forEach(team => { %>
+                  <option value="<%= team._id %>"><%= team.ten %></option>
+                <% })} %>
               </select>
             </div>
             <% } %>
@@ -429,6 +451,18 @@
   function fillCompleteModal(id, title) {
     document.getElementById('completeTaskForm').action = '/work-tasks/' + id + '/toggle?_method=PUT';
     document.getElementById('completeTaskTitle').innerText = title;
+  }
+
+  // Handle radio toggle
+  function toggleAssignType() {
+    const isTeam = document.getElementById('assignTeam').checked;
+    if (isTeam) {
+      document.getElementById('divAssignIndividual').style.display = 'none';
+      document.getElementById('divAssignTeam').style.display = 'block';
+    } else {
+      document.getElementById('divAssignIndividual').style.display = 'block';
+      document.getElementById('divAssignTeam').style.display = 'none';
+    }
   }
 
   // Show Task Detail Modal (Mobile)

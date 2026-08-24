@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const WorkTask = require('../models/WorkTask');
 const Officer = require('../models/Officer');
+const Team = require('../models/Team');
 const { isAuthenticated } = require('../middleware/auth');
 const { runTelegramCheck } = require('../services/cronJobs');
+const { sendToGroup } = require('../services/telegramBot');
 const moment = require('moment');
 
 // Lấy danh sách công việc
@@ -22,6 +24,7 @@ router.get('/', isAuthenticated, async (req, res) => {
     
     const tasks = await WorkTask.find(query).populate('assignee').sort({ createdAt: -1 });
     const officers = await Officer.find().sort({ hoTen: 1 });
+    const teams = await Team.find({ trangThai: true }).sort({ thuTu: 1 });
 
     // Tính toán thống kê cho tháng hiện tại
     const currentMonth = moment().month();
@@ -73,6 +76,7 @@ router.get('/', isAuthenticated, async (req, res) => {
       urgentCount,
       currentMonthName: moment().format('MM/YYYY'),
       officers,
+      teams,
       activeMenu: 'work-tasks'
     });
   } catch (err) {
@@ -101,20 +105,64 @@ router.get('/test-telegram', isAuthenticated, async (req, res) => {
 // Thêm công việc mới
 router.post('/', isAuthenticated, async (req, res) => {
   try {
-    const { title, description, frequency, dueDate, assignee } = req.body;
-    let finalAssignee = assignee || null;
+    const { title, description, frequency, dueDate, assignType, assignees, assignTeam } = req.body;
+    let finalAssignees = [];
+
     if (req.session.user.role === 'cbcs') {
-      finalAssignee = req.session.user.officerProfile;
+      finalAssignees = [req.session.user.officerProfile];
+    } else {
+      if (assignType === 'team' && assignTeam) {
+        // Lấy tất cả cán bộ trong tổ
+        const teamOfficers = await Officer.find({ toCongTac: assignTeam });
+        finalAssignees = teamOfficers.map(o => o._id);
+      } else if (assignType === 'individual' && assignees) {
+        // assignees có thể là mảng (nếu chọn nhiều) hoặc chuỗi (nếu chọn 1)
+        if (Array.isArray(assignees)) {
+          finalAssignees = assignees;
+        } else {
+          finalAssignees = [assignees];
+        }
+      }
     }
 
-    await WorkTask.create({
+    if (finalAssignees.length === 0) {
+      // Nếu không có ai được giao, vẫn tạo 1 công việc không có assignee (nếu muốn) 
+      // hoặc mặc định báo lỗi. Ở đây ta vẫn cho phép tạo 1 việc trống nếu muốn.
+      finalAssignees = [null];
+    }
+
+    const tasksToCreate = finalAssignees.map(oId => ({
       title,
       description,
       frequency: frequency || 'once',
       dueDate: dueDate ? new Date(dueDate) : null,
-      assignee: finalAssignee,
+      assignee: oId,
       createdBy: req.session.user._id
-    });
+    }));
+
+    await WorkTask.insertMany(tasksToCreate);
+
+    // Gửi thông báo Telegram
+    if (finalAssignees.length > 0 && finalAssignees[0] !== null) {
+      const assignedOfficers = await Officer.find({ _id: { $in: finalAssignees } });
+      const officerNames = assignedOfficers.map(o => `${o.capBac || ''} ${o.hoTen}`).join(', ');
+      
+      let message = `📢 <b>CÔNG VIỆC MỚI ĐƯỢC GIAO</b>\n\n`;
+      message += `📌 Tên việc: <b>${title}</b>\n`;
+      message += `👥 Người thực hiện: ${officerNames}\n`;
+      if (dueDate) {
+        message += `⏰ Hạn chót: ${moment(dueDate).format('DD/MM/YYYY')}\n`;
+      } else {
+        message += `⏰ Hạn chót: Không có hạn\n`;
+      }
+      if (description) {
+        message += `📝 Chi tiết: ${description}\n`;
+      }
+      message += `\n👉 <a href="${process.env.APP_URL}/work-tasks">Xem chi tiết trên hệ thống</a>`;
+      
+      await sendToGroup(message);
+    }
+
     req.flash('success', 'Thêm công việc thành công');
     res.redirect('/work-tasks');
   } catch (err) {
