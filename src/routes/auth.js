@@ -2,13 +2,22 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticator } = require('otplib');
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 10, // Tối đa 10 lần sai từ 1 IP
+  message: 'Quá nhiều nỗ lực đăng nhập. Vui lòng thử lại sau 15 phút.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
   res.render('auth/login', { title: 'Đăng nhập - PMCAX' });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username }).populate('officerProfile');
@@ -69,7 +78,7 @@ router.get('/login/2fa', (req, res) => {
   res.render('auth/2fa', { title: 'Xác thực 2 bước (2FA)' });
 });
 
-router.post('/login/2fa', async (req, res) => {
+router.post('/login/2fa', loginLimiter, async (req, res) => {
   try {
     if (!req.session.tempUserId) return res.redirect('/login');
     const { token } = req.body;

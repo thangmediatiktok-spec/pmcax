@@ -164,6 +164,43 @@
     sidebar.classList.remove('show');
     backdrop.classList.remove('show');
   });
+
+  // Page Transition Logic
+  window.addEventListener('load', function() {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+      loader.classList.add('hide');
+    }
+  });
+
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      const target = this.getAttribute('target');
+      const hasToggle = this.hasAttribute('data-bs-toggle');
+      const isDownload = this.hasAttribute('download');
+      
+      // Prevent loader on hash links, javascript:, new tabs, modals/collapses, or downloads
+      if (href && !href.startsWith('#') && !href.startsWith('javascript:') && target !== '_blank' && !hasToggle && !isDownload) {
+        const loader = document.getElementById('page-loader');
+        if (loader && !e.defaultPrevented) {
+          loader.classList.remove('hide');
+        }
+      }
+    });
+  });
+
+  // Form submission loader (optional, applies to regular forms)
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      if (!e.defaultPrevented && !this.target) {
+        const loader = document.getElementById('page-loader');
+        if (loader) {
+          loader.classList.remove('hide');
+        }
+      }
+    });
+  });
 </script>
 </body>
 </html>

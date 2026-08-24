@@ -10,8 +10,46 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <link href="/css/style.css?v=<%= Date.now() %>" rel="stylesheet">
+  <style>
+    /* Page Transition Loader */
+    #page-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f8f9fa;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    #page-loader.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .loader-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(26, 34, 53, 0.1);
+      border-top-color: #1a2235;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body class="bg-light" style="height: 100vh; overflow: hidden;">
+<!-- Page Loader -->
+<div id="page-loader">
+  <div class="loader-spinner mb-2"></div>
+  <div class="fw-semibold text-muted" style="font-size: 13px;">Đang tải...</div>
+</div>
+
 <div class="wrapper d-flex w-100 h-100">
   <!-- Sidebar -->
   <nav id="sidebar" class="sidebar d-flex flex-column h-100" style="width:250px;background:url('/images/trong-dong.png') center/cover no-repeat,#1a2235;background-blend-mode:soft-light;flex-shrink:0;transition:width .3s;z-index:1055;">

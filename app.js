@@ -7,6 +7,8 @@ const methodOverride = require('method-override');
 const morgan = require('morgan');
 const path = require('path');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./src/config/database');
 const { initCronJobs } = require('./src/services/cronJobs');
@@ -33,17 +35,30 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
+app.use(helmet({
+  contentSecurityPolicy: false, // Tạm tắt CSP để không chặn Bootstrap/CDN
+  crossOriginEmbedderPolicy: false
+}));
+
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(mongoSanitize()); // Chống NoSQL Injection
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.set('trust proxy', 1); // Cần thiết khi dùng HTTPS qua Cloudflare/Nginx
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'pmcax_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+  cookie: { 
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  }
 }));
 
 app.use(flash());
