@@ -23,6 +23,7 @@ const sendTelegramMessage = async (message) => {
       chat_id: chatId,
       text: message,
       parse_mode: 'HTML' // Để dùng được các thẻ in đậm <b> </b>
+    });
     return true;
   } catch (error) {
     console.error('Lỗi khi gửi Telegram:', error.response ? error.response.data : error.message);
