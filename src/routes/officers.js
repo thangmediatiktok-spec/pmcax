@@ -525,4 +525,20 @@ router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
   res.redirect('/officers');
 });
 
+// Route cập nhật nhanh trạng thái cán bộ (Admin/Truong_CAX only)
+router.post('/:id/trangthai', isAuthenticated, isEditorOrAdmin, async (req, res) => {
+  try {
+    const { trangThai } = req.body;
+    const validStatuses = ['Đang làm việc', 'Đang đi học', 'Đi công tác', 'Nghỉ phép', 'Nghỉ ốm', 'Vắng không lý do'];
+    if (!validStatuses.includes(trangThai)) {
+      return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+    }
+    await Officer.findByIdAndUpdate(req.params.id, { trangThai });
+    return res.json({ success: true, trangThai });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
 module.exports = router;

@@ -152,15 +152,28 @@
             <td><small><%= o.chucVu %></small></td>
             <td><small><%= o.capBac || '-' %></small></td>
             <td><small><%= o.soDienThoai || '-' %></small></td>
-            <td class="text-center">
+            <td class="text-center" onclick="event.stopPropagation()">
               <% 
                 let badgeClass = 'bg-secondary';
-                if (o.trangThai === 'Đang làm việc') badgeClass = 'bg-success';
-                else if (o.trangThai === 'Nghỉ phép' || o.trangThai === 'Nghỉ ốm') badgeClass = 'bg-warning text-dark';
-                else if (o.trangThai === 'Đi công tác') badgeClass = 'bg-info text-dark';
-                else if (o.trangThai === 'Vắng không lý do') badgeClass = 'bg-danger';
+                const tt = o.trangThai || 'Đang làm việc';
+                if (tt === 'Đang làm việc') badgeClass = 'bg-success';
+                else if (tt === 'Nghỉ phép' || tt === 'Nghỉ ốm') badgeClass = 'bg-warning text-dark';
+                else if (tt === 'Đi công tác') badgeClass = 'bg-info text-dark';
+                else if (tt === 'Vắng không lý do') badgeClass = 'bg-danger';
+                else if (tt === 'Đang đi học') badgeClass = 'bg-primary';
               %>
-              <span class="badge <%= badgeClass %>"><%= o.trangThai || 'Đang làm việc' %></span>
+              <% if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'truong_cax' || currentUser.role === 'pho_cax')) { %>
+              <select class="form-select form-select-sm quick-status-select"
+                      data-id="<%= o._id %>"
+                      style="min-width:130px;font-size:11px;padding:2px 6px;border-radius:12px;border:none;background-color:transparent;cursor:pointer;font-weight:600;"
+                      title="Nhấp để thay đổi trạng thái">
+                <% ['Đang làm việc','Đang đi học','Đi công tác','Nghỉ phép','Nghỉ ốm','Vắng không lý do'].forEach(s => { %>
+                  <option value="<%= s %>" <%= s === tt ? 'selected' : '' %>><%= s %></option>
+                <% }) %>
+              </select>
+              <% } else { %>
+              <span class="badge <%= badgeClass %>"><%= tt %></span>
+              <% } %>
             </td>
             <td>
               <span class="badge bg-primary">
@@ -259,5 +272,54 @@
     </div>
   </div>
 </div>
+
+<script>
+document.querySelectorAll('.quick-status-select').forEach(function(sel) {
+  const statusColors = {
+    'Đang làm việc': '#198754',
+    'Đang đi học': '#0d6efd',
+    'Đi công tác': '#0dcaf0',
+    'Nghỉ phép': '#ffc107',
+    'Nghỉ ốm': '#ffc107',
+    'Vắng không lý do': '#dc3545'
+  };
+  function applyColor(el) {
+    const color = statusColors[el.value] || '#6c757d';
+    el.style.backgroundColor = color + '22';
+    el.style.color = (el.value === 'Nghỉ phép' || el.value === 'Nghỉ ốm' || el.value === 'Đi công tác') ? '#555' : color;
+    el.style.borderColor = color + '66';
+  }
+  applyColor(sel);
+  sel.addEventListener('change', async function() {
+    const id = this.dataset.id;
+    const trangThai = this.value;
+    try {
+      const res = await fetch('/officers/' + id + '/trangthai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trangThai })
+      });
+      const data = await res.json();
+      if (data.success) {
+        applyColor(this);
+        // Toast thông báo nhỏ
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 p-3';
+        toast.style.zIndex = 9999;
+        toast.innerHTML = `<div class="toast show align-items-center text-white bg-success border-0" role="alert">
+          <div class="d-flex"><div class="toast-body"><i class="fas fa-check-circle me-2"></i>Đã cập nhật trạng thái!</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.position-fixed').remove()"></button></div></div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      } else {
+        alert('Lỗi cập nhật trạng thái!');
+        location.reload();
+      }
+    } catch(e) {
+      alert('Lỗi kết nối!');
+    }
+  });
+});
+</script>
 
 <%- include('../partials/footer') %>
