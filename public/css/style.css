@@ -62,3 +62,50 @@ body { font-family: "Segoe UI", Arial, sans-serif; color: #273142; font-size: 14
 }
 
 .mobile-bottom-nav { display: none; }
+
+/* Shimmer animations */
+.shimmer-text-gold {
+  background: linear-gradient(110deg, #ffc107 0%, #ffc107 40%, #ffffff 50%, #ffc107 60%, #ffc107 100%);
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-text-anim 3s linear infinite;
+}
+
+.shimmer-text-dark {
+  background: linear-gradient(110deg, #1a2235 0%, #1a2235 40%, #aebdca 50%, #1a2235 60%, #1a2235 100%);
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-text-anim 3s linear infinite;
+}
+
+@keyframes shimmer-text-anim {
+  0% { background-position: -100% center; }
+  100% { background-position: 100% center; }
+}
+
+.shimmer-img-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-img-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg);
+  animation: shimmer-img-anim 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer-img-anim {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
