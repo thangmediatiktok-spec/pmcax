@@ -34,6 +34,21 @@ const initTelegramBot = async () => {
   bot = new TelegramBot(token, { polling: true });
   console.log('Khởi tạo Telegram Bot (Polling) thành công!');
 
+  // Tự động đồng bộ Menu Lệnh lên Telegram
+  try {
+    const activeCmds = await TelegramCommand.find({ isActive: true });
+    if (activeCmds && activeCmds.length > 0) {
+      const telegramMenuCmds = activeCmds.map(c => ({
+        command: c.command,
+        description: c.description || 'Lệnh hệ thống'
+      }));
+      await bot.setMyCommands(telegramMenuCmds);
+      console.log('Đã đồng bộ Menu Lệnh lên Telegram thành công.');
+    }
+  } catch (menuErr) {
+    console.error('Lỗi khi đồng bộ Menu Lệnh Telegram:', menuErr.message);
+  }
+
   // Lắng nghe sự kiện nhắn tin
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
