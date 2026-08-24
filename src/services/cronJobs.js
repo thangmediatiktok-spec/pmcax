@@ -2,11 +2,15 @@ const cron = require('node-cron');
 const axios = require('axios');
 const moment = require('moment');
 const WorkTask = require('../models/WorkTask');
+const Setting = require('../models/Setting');
 
 // Hàm gửi tin nhắn Telegram
 const sendTelegramMessage = async (message) => {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const tokenSetting = await Setting.findOne({ key: 'TELEGRAM_BOT_TOKEN' });
+  const chatSetting = await Setting.findOne({ key: 'TELEGRAM_CHAT_ID' });
+  
+  const botToken = (tokenSetting && tokenSetting.value) ? tokenSetting.value : process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = (chatSetting && chatSetting.value) ? chatSetting.value : process.env.TELEGRAM_CHAT_ID;
 
   if (!botToken || !chatId) {
     console.log('Chưa cấu hình Telegram Bot Token hoặc thiếu Chat ID của Quản lý');
@@ -19,10 +23,11 @@ const sendTelegramMessage = async (message) => {
       chat_id: chatId,
       text: message,
       parse_mode: 'HTML' // Để dùng được các thẻ in đậm <b> </b>
-    });
-    console.log('Đã gửi thông báo Telegram cho Quản lý thành công.');
+    return true;
   } catch (error) {
     console.error('Lỗi khi gửi Telegram:', error.response ? error.response.data : error.message);
+    const errorMsg = error.response && error.response.data && error.response.data.description ? error.response.data.description : error.message;
+    throw new Error(errorMsg);
   }
 };
 
@@ -67,11 +72,15 @@ const runTelegramCheck = async () => {
 
       message += `\n👉 <i>Đề nghị các đồng chí có tên trên nhanh chóng hoàn thành nhiệm vụ!</i>`;
 
-      await sendTelegramMessage(message);
-      return { success: true, message: 'Đã gửi báo cáo Telegram thành công.' };
+      try {
+        await sendTelegramMessage(message);
+        return { success: true, message: 'Đã gửi báo cáo Telegram thành công.' };
+      } catch (telegramErr) {
+        return { success: false, message: 'Lỗi từ Telegram: ' + telegramErr.message };
+      }
     } else {
       console.log('Không có công việc nào sắp đến hạn cần nhắc nhở.');
-      return { success: true, message: 'Không có công việc nào sắp đến hạn.' };
+      return { success: true, message: 'Không có công việc nào sắp đến hạn (Không có gì để gửi).' };
     }
   } catch (err) {
     console.error('Lỗi khi rà soát công việc cron job:', err);
