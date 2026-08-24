@@ -13,6 +13,35 @@
   </div>
 </div>
 
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3">
+    <h6 class="mb-0 fw-bold"><i class="fas fa-key text-warning me-2"></i>Cấu hình Kết nối Bot</h6>
+  </div>
+  <div class="card-body">
+    <form action="/telegram-config/settings" method="POST">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Telegram Bot Token <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="botToken" value="<%= typeof botToken !== 'undefined' ? botToken : '' %>" required placeholder="1234567890:AAH...">
+          <div class="form-text small text-muted">
+            <i class="fas fa-info-circle me-1"></i> Lấy Token bằng cách chat với <strong>@BotFather</strong> trên Telegram, dùng lệnh <code>/newbot</code> để tạo Bot mới và copy đoạn Token cung cấp.
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Telegram Group Chat ID <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="chatId" value="<%= typeof chatId !== 'undefined' ? chatId : '' %>" required placeholder="-100123456789">
+          <div class="form-text small text-muted">
+            <i class="fas fa-info-circle me-1"></i> Lấy ID bằng cách thêm Bot vào nhóm, sau đó gửi 1 tin nhắn bất kỳ và thêm <strong>@RawDataBot</strong> hoặc bot lấy ID vào nhóm để xem (thường bắt đầu bằng dấu trừ <code>-</code> hoặc <code>-100</code>).
+          </div>
+        </div>
+      </div>
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary shadow-sm"><i class="fas fa-save me-1"></i>Lưu cấu hình & Khởi động Bot</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
     <div class="table-responsive">

@@ -8,10 +8,22 @@ const moment = require('moment-timezone');
 const cron = require('node-cron');
 const cronJobs = require('./cronJobs'); // Để dùng lại logic gửi tin nếu cần
 
+const Setting = require('../models/Setting');
+
 let bot = null;
 
-const initTelegramBot = () => {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+const initTelegramBot = async () => {
+  const tokenSetting = await Setting.findOne({ key: 'TELEGRAM_BOT_TOKEN' });
+  const token = (tokenSetting && tokenSetting.value) ? tokenSetting.value : process.env.TELEGRAM_BOT_TOKEN;
+  
+  if (bot) {
+    try {
+      await bot.stopPolling();
+    } catch (e) {
+      console.error('Lỗi khi stop polling bot cũ:', e);
+    }
+    bot = null;
+  }
   
   if (!token) {
     console.log('Chưa cấu hình TELEGRAM_BOT_TOKEN. Bỏ qua khởi tạo Bot 2 chiều.');
@@ -107,9 +119,14 @@ const initTelegramBot = () => {
 
   bot.on("polling_error", (msg) => console.log('Telegram Polling Error:', msg));
 
+  if (global.telegramCronJob) {
+    global.telegramCronJob.stop();
+  }
+
   // Thiết lập CronJob tự động chạy các lệnh đã lên lịch
-  cron.schedule('* * * * *', async () => {
-    const groupChatId = process.env.TELEGRAM_CHAT_ID;
+  global.telegramCronJob = cron.schedule('* * * * *', async () => {
+    const chatSetting = await Setting.findOne({ key: 'TELEGRAM_CHAT_ID' });
+    const groupChatId = (chatSetting && chatSetting.value) ? chatSetting.value : process.env.TELEGRAM_CHAT_ID;
     if (!groupChatId) return;
 
     // Lấy giờ hiện tại theo định dạng HH:mm ở múi giờ VN
@@ -423,7 +440,8 @@ const sendToGroup = async (message) => {
     console.log('Bot chưa được khởi tạo, không thể gửi tin nhắn.');
     return;
   }
-  const groupChatId = process.env.TELEGRAM_CHAT_ID;
+  const chatSetting = await Setting.findOne({ key: 'TELEGRAM_CHAT_ID' });
+  const groupChatId = (chatSetting && chatSetting.value) ? chatSetting.value : process.env.TELEGRAM_CHAT_ID;
   if (!groupChatId) {
     console.log('Chưa cấu hình TELEGRAM_CHAT_ID.');
     return;

@@ -107,7 +107,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
     // Khởi tạo Bot Telegram (Long Polling)
     const { initTelegramBot } = require('./src/services/telegramBot');
-    initTelegramBot();
+    await initTelegramBot();
 
     // Khởi tạo lệnh mặc định
     const TelegramCommand = require('./src/models/TelegramCommand');

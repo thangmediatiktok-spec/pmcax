@@ -1,20 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const TelegramCommand = require('../models/TelegramCommand');
+const Setting = require('../models/Setting');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { initTelegramBot } = require('../services/telegramBot');
 
 // Lấy danh sách lệnh
 router.get('/', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const commands = await TelegramCommand.find().sort({ createdAt: -1 });
+    const tokenSetting = await Setting.findOne({ key: 'TELEGRAM_BOT_TOKEN' });
+    const chatSetting = await Setting.findOne({ key: 'TELEGRAM_CHAT_ID' });
+
     res.render('settings/telegram', {
       title: 'Cấu hình Bot Telegram',
-      commands
+      commands,
+      botToken: tokenSetting ? tokenSetting.value : (process.env.TELEGRAM_BOT_TOKEN || ''),
+      chatId: chatSetting ? chatSetting.value : (process.env.TELEGRAM_CHAT_ID || '')
     });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Lỗi khi tải danh sách lệnh');
     res.redirect('/dashboard');
+  }
+});
+
+// Lưu cấu hình token & chat id
+router.post('/settings', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const { botToken, chatId } = req.body;
+    
+    await Setting.findOneAndUpdate({ key: 'TELEGRAM_BOT_TOKEN' }, { value: botToken.trim() }, { upsert: true });
+    await Setting.findOneAndUpdate({ key: 'TELEGRAM_CHAT_ID' }, { value: chatId.trim() }, { upsert: true });
+
+    // Khởi tạo lại Bot
+    await initTelegramBot();
+
+    req.flash('success', 'Đã lưu cấu hình Bot Telegram.');
+    res.redirect('/telegram-config');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Lỗi khi lưu cấu hình');
+    res.redirect('/telegram-config');
   }
 });
 
