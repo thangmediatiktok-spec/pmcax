@@ -32,9 +32,14 @@
             <%= officer.toCongTac ? officer.toCongTac.ten : '-' %>
           </span>
         </div>
-        <% if (officer.dangVien) { %>
-          <span class="badge bg-danger"><i class="fas fa-star me-1"></i>Đảng viên</span>
-        <% } %>
+        <% 
+          let badgeClass = 'bg-secondary';
+          if (officer.trangThai === 'Đang làm việc') badgeClass = 'bg-success';
+          else if (officer.trangThai === 'Nghỉ phép' || officer.trangThai === 'Nghỉ ốm') badgeClass = 'bg-warning text-dark';
+          else if (officer.trangThai === 'Đi công tác') badgeClass = 'bg-info text-dark';
+          else if (officer.trangThai === 'Vắng không lý do') badgeClass = 'bg-danger';
+        %>
+        <span class="badge <%= badgeClass %> mb-2"><%= officer.trangThai || 'Đang làm việc' %></span>
         <hr>
         <div class="text-start small">
           <div class="d-flex justify-content-between mb-1">
@@ -134,7 +139,7 @@
             ['Chức danh', officer.chucDanh || '-'],
             ['Chức vụ', officer.chucVu],
             ['Tổ / Đơn vị', officer.toCongTac ? officer.toCongTac.ten : officer.donViCongTac || '-'],
-            ['Đảng / Đoàn viên', officer.dangVien ? `Đảng viên - ${fmtDate(officer.ngayVaoDang)}` : 'Không'],
+            ['Trạng thái', officer.trangThai || 'Đang làm việc'],
             ['Ngày nhập ngũ', fmtDate(officer.ngayNhapNgu)]
           ]; %>
           <% workFields.forEach(([label, val]) => { %>
@@ -165,6 +170,7 @@
       <div class="card-body p-3">
         <div class="row g-2">
           <% const eduFields = [
+            ['Đảng viên', officer.dangVien ? `Đảng viên - ${fmtDate(officer.ngayVaoDang)}` : 'Không'],
             ['Học vấn', officer.hocVan || '-'],
             ['Nghiệp vụ CA', officer.nghiepVuCA || '-'],
             ['Trường đào tạo CA', officer.truongDaoTaoCA || '-'],

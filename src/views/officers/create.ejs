@@ -107,15 +107,12 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label small fw-semibold">Đảng viên</label>
-              <select name="dangVien" class="form-select">
-                <option value="false">Chưa vào Đảng</option>
-                <option value="true">Đảng viên</option>
+              <label class="form-label small fw-semibold">Trạng thái <span class="text-danger">*</span></label>
+              <select name="trangThai" class="form-select" required>
+                <% ['Đang làm việc', 'Đang đi học', 'Đi công tác', 'Nghỉ phép', 'Nghỉ ốm', 'Vắng không lý do'].forEach(tt => { %>
+                  <option value="<%= tt %>" <%= tt === 'Đang làm việc' ? 'selected' : '' %>><%= tt %></option>
+                <% }) %>
               </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Ngày vào Đảng</label>
-              <input type="date" name="ngayVaoDang" class="form-control">
             </div>
             <div class="col-md-4">
               <label class="form-label small fw-semibold">Đơn vị công tác</label>
@@ -132,10 +129,21 @@
       <!-- Trình độ -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3 border-bottom">
-          <h6 class="mb-0 fw-semibold"><i class="fas fa-graduation-cap text-warning me-2"></i>Trình độ học vấn</h6>
+          <h6 class="mb-0 fw-semibold"><i class="fas fa-graduation-cap text-warning me-2"></i>Trình độ học vấn & Đảng</h6>
         </div>
         <div class="card-body p-3">
           <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Đảng viên</label>
+              <select name="dangVien" class="form-select">
+                <option value="false">Chưa vào Đảng</option>
+                <option value="true">Đảng viên</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Ngày vào Đảng</label>
+              <input type="date" name="ngayVaoDang" class="form-control">
+            </div>
             <div class="col-md-4">
               <label class="form-label small fw-semibold">Học vấn</label>
               <select name="hocVan" class="form-select">

@@ -67,8 +67,8 @@ const officerSchema = new mongoose.Schema({
   anhDaiDien: { type: String, default: null },
   trangThai: {
     type: String,
-    enum: ['Đang công tác', 'Nghỉ phép', 'Công tác xa', 'Đã xuất ngũ', 'Đã nghỉ hưu'],
-    default: 'Đang công tác'
+    enum: ['Đang làm việc', 'Đang đi học', 'Đi công tác', 'Nghỉ phép', 'Nghỉ ốm', 'Vắng không lý do'],
+    default: 'Đang làm việc'
   },
   ghiChu: { type: String },
   telegramChatId: { type: String, trim: true },

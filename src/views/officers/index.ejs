@@ -98,7 +98,6 @@
           <div class="flex-grow-1">
             <div class="fw-bold mb-1" style="color: #1a2235; font-size: 14px;">
               <%= o.hoTen %> 
-              <% if (o.dangVien) { %><i class="fas fa-star text-warning ms-1" style="font-size: 10px;"></i><% } %>
             </div>
             <div class="text-muted small mb-1"><i class="fas fa-id-badge me-1"></i><%= o.maSo %> | <%= o.capBac || 'Chưa cấp bậc' %></div>
             <div class="text-muted small"><i class="fas fa-users me-1"></i><%= o.chucVu %> - <%= o.toCongTac ? o.toCongTac.ten : '-' %></div>
@@ -125,7 +124,7 @@
             <th>Chức vụ</th>
             <th>Cấp bậc</th>
             <th>Điện thoại</th>
-            <th>Đảng viên</th>
+            <th>Trạng thái</th>
             <th>Tổ công tác</th>
             <th style="width:100px">Thao tác</th>
           </tr>
@@ -154,11 +153,14 @@
             <td><small><%= o.capBac || '-' %></small></td>
             <td><small><%= o.soDienThoai || '-' %></small></td>
             <td class="text-center">
-              <% if (o.dangVien) { %>
-                <i class="fas fa-star text-warning" title="Đảng viên"></i>
-              <% } else { %>
-                <span class="text-muted">-</span>
-              <% } %>
+              <% 
+                let badgeClass = 'bg-secondary';
+                if (o.trangThai === 'Đang làm việc') badgeClass = 'bg-success';
+                else if (o.trangThai === 'Nghỉ phép' || o.trangThai === 'Nghỉ ốm') badgeClass = 'bg-warning text-dark';
+                else if (o.trangThai === 'Đi công tác') badgeClass = 'bg-info text-dark';
+                else if (o.trangThai === 'Vắng không lý do') badgeClass = 'bg-danger';
+              %>
+              <span class="badge <%= badgeClass %>"><%= o.trangThai || 'Đang làm việc' %></span>
             </td>
             <td>
               <span class="badge bg-primary">

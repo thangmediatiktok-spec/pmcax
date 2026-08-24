@@ -389,7 +389,7 @@ const handleThongKe = async (chatId) => {
   try {
     const today = moment().startOf('day');
     
-    const totalOfficers = await Officer.countDocuments({ trangThai: 'Đang công tác' });
+    const totalOfficers = await Officer.countDocuments({ trangThai: { $nin: ['Đã xuất ngũ', 'Đã nghỉ hưu'] } });
     const leavesToday = await Leave.countDocuments({ 
       trangThai: 'Đã duyệt', 
       tuNgay: { $lte: today.toDate() }, 

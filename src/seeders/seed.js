@@ -23,19 +23,19 @@ const officers = [
     maSo: 'CAX001', hoTen: 'Nguyễn Văn Minh', ngaySinh: new Date('1982-05-12'), gioiTinh: 'Nam',
     queQuan: 'Hà Nội', soDienThoai: '0901234567', chucVu: 'Trưởng Công an xã',
     ngayVaoBieu: new Date('2005-09-01'), ngayNhapNgu: new Date('2003-02-15'), hocVan: 'Đại học',
-    chuyenNganh: 'Luật', lyLuanChinhTri: 'Cao cấp', dangVien: true, ngayVaoDang: new Date('2008-06-15'), trangThai: 'Đang công tác'
+    chuyenNganh: 'Luật', lyLuanChinhTri: 'Cao cấp', dangVien: true, ngayVaoDang: new Date('2008-06-15'), trangThai: 'Đang làm việc'
   },
   {
     maSo: 'CAX002', hoTen: 'Trần Thị Hương', ngaySinh: new Date('1988-11-23'), gioiTinh: 'Nữ',
     queQuan: 'Hải Phòng', soDienThoai: '0912345678', chucVu: 'Phó Trưởng Công an xã',
     ngayVaoBieu: new Date('2010-08-01'), hocVan: 'Đại học', chuyenNganh: 'An ninh',
-    lyLuanChinhTri: 'Trung cấp', dangVien: true, ngayVaoDang: new Date('2013-05-20'), trangThai: 'Đang công tác'
+    lyLuanChinhTri: 'Trung cấp', dangVien: true, ngayVaoDang: new Date('2013-05-20'), trangThai: 'Đang làm việc'
   },
   {
     maSo: 'CAX003', hoTen: 'Lê Hoàng Nam', ngaySinh: new Date('1992-03-08'), gioiTinh: 'Nam',
     queQuan: 'Nghệ An', soDienThoai: '0923456789', chucVu: 'Trung đội trưởng',
     ngayNhapNgu: new Date('2012-09-01'), hocVan: 'Cao đẳng', chuyenNganh: 'Nghiệp vụ Công an',
-    dangVien: false, trangThai: 'Đang công tác'
+    dangVien: false, trangThai: 'Đang làm việc'
   }
 ];
 

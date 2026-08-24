@@ -134,15 +134,15 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.get('/template', isAuthenticated, isEditorOrAdmin, (req, res) => {
   const wb = xlsx.utils.book_new();
   const wsData = [
-    ['Số hiệu CAND (*)', 'Họ và tên (*)', 'Ngày sinh (DD/MM/YYYY) (*)', 'Giới tính (Nam/Nữ) (*)', 'Số CCCD', 'Ngày cấp CCCD (DD/MM/YYYY)', 'Số điện thoại', 'Quê quán', 'Địa chỉ thường trú', 'Email', 'Chức vụ (*)', 'Cấp bậc', 'Tổ công tác (*)', 'Đơn vị công tác', 'Ngày nhập ngũ (DD/MM/YYYY) (*)', 'Đảng viên (Có/Không)', 'Ngày vào Đảng (DD/MM/YYYY)', 'Học vấn', 'Chuyên ngành', 'Lý luận chính trị', 'Nghiệp vụ CA', 'Trường đào tạo CA', 'Ngoại ngữ', 'Tin học'],
-    ['123-456', 'Nguyễn Văn A', '01/01/1990', 'Nam', '001090123456', '01/01/2021', '0987654321', 'Hà Nội', 'Xã X, Huyện Y, Hà Nội', 'a@example.com', 'Cán bộ', 'Đại úy', 'Tổ Cảnh sát khu vực', 'Công an xã', '01/01/2010', 'Có', '01/01/2015', 'Đại học', 'Luật', 'Trung cấp', 'Đại học - Luật', 'Đại học CSND', 'B1', 'Ứng dụng CNTT cơ bản']
+    ['Số hiệu CAND (*)', 'Họ và tên (*)', 'Ngày sinh (DD/MM/YYYY) (*)', 'Giới tính (Nam/Nữ) (*)', 'Số CCCD', 'Ngày cấp CCCD (DD/MM/YYYY)', 'Số điện thoại', 'Quê quán', 'Địa chỉ thường trú', 'Email', 'Chức vụ (*)', 'Cấp bậc', 'Tổ công tác (*)', 'Trạng thái', 'Đơn vị công tác', 'Ngày nhập ngũ (DD/MM/YYYY) (*)', 'Đảng viên (Có/Không)', 'Ngày vào Đảng (DD/MM/YYYY)', 'Học vấn', 'Chuyên ngành', 'Lý luận chính trị', 'Nghiệp vụ CA', 'Trường đào tạo CA', 'Ngoại ngữ', 'Tin học'],
+    ['123-456', 'Nguyễn Văn A', '01/01/1990', 'Nam', '001090123456', '01/01/2021', '0987654321', 'Hà Nội', 'Xã X, Huyện Y, Hà Nội', 'a@example.com', 'Cán bộ', 'Đại úy', 'Tổ Cảnh sát khu vực', 'Đang làm việc', 'Công an xã', '01/01/2010', 'Có', '01/01/2015', 'Đại học', 'Luật', 'Trung cấp', 'Đại học - Luật', 'Đại học CSND', 'B1', 'Ứng dụng CNTT cơ bản']
   ];
   const ws = xlsx.utils.aoa_to_sheet(wsData);
   
   const wscols = [
     {wch: 15}, {wch: 20}, {wch: 22}, {wch: 20}, {wch: 15}, {wch: 22},
     {wch: 15}, {wch: 20}, {wch: 25}, {wch: 20}, {wch: 15}, {wch: 15},
-    {wch: 20}, {wch: 15}, {wch: 22}, {wch: 20}, {wch: 22}, {wch: 15},
+    {wch: 20}, {wch: 15}, {wch: 15}, {wch: 22}, {wch: 20}, {wch: 22}, {wch: 15},
     {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 15}, {wch: 15}
   ];
   ws['!cols'] = wscols;
@@ -221,17 +221,18 @@ router.post('/import', isAuthenticated, isEditorOrAdmin, excelUpload.single('fil
         chucVu: String(row[10]).normalize('NFC').trim(),
         capBac: row[11] ? String(row[11]).normalize('NFC').trim() : undefined,
         toCongTac,
-        donViCongTac: row[13] ? String(row[13]).normalize('NFC').trim() : 'Công an xã',
-        ngayNhapNgu: parseDateStr(row[14]),
-        dangVien: row[15] && String(row[15]).normalize('NFC').trim().toLowerCase() === 'có',
-        ngayVaoDang: parseDateStr(row[16]),
-        hocVan: row[17] ? String(row[17]).normalize('NFC').trim() : undefined,
-        chuyenNganh: row[18] ? String(row[18]).normalize('NFC').trim() : undefined,
-        lyLuanChinhTri: row[19] ? String(row[19]).normalize('NFC').trim() : undefined,
-        nghiepVuCA: row[20] ? String(row[20]).normalize('NFC').trim() : undefined,
-        truongDaoTaoCA: row[21] ? String(row[21]).normalize('NFC').trim() : undefined,
-        ngoaiNgu: row[22] ? String(row[22]).normalize('NFC').trim() : undefined,
-        tinHoc: row[23] ? String(row[23]).normalize('NFC').trim() : undefined
+        trangThai: row[13] ? String(row[13]).normalize('NFC').trim() : 'Đang làm việc',
+        donViCongTac: row[14] ? String(row[14]).normalize('NFC').trim() : 'Công an xã',
+        ngayNhapNgu: parseDateStr(row[15]),
+        dangVien: row[16] && String(row[16]).normalize('NFC').trim().toLowerCase() === 'có',
+        ngayVaoDang: parseDateStr(row[17]),
+        hocVan: row[18] ? String(row[18]).normalize('NFC').trim() : undefined,
+        chuyenNganh: row[19] ? String(row[19]).normalize('NFC').trim() : undefined,
+        lyLuanChinhTri: row[20] ? String(row[20]).normalize('NFC').trim() : undefined,
+        nghiepVuCA: row[21] ? String(row[21]).normalize('NFC').trim() : undefined,
+        truongDaoTaoCA: row[22] ? String(row[22]).normalize('NFC').trim() : undefined,
+        ngoaiNgu: row[23] ? String(row[23]).normalize('NFC').trim() : undefined,
+        tinHoc: row[24] ? String(row[24]).normalize('NFC').trim() : undefined
       };
 
       try {
@@ -318,6 +319,8 @@ router.get('/export/excel', isAuthenticated, async (req, res) => {
       'Chức vụ': o.chucVu || '',
       'Cấp bậc': o.capBac || '',
       'Tổ công tác': o.toCongTac ? o.toCongTac.ten : '',
+      'Trạng thái': o.trangThai || 'Đang làm việc',
+      'Đơn vị công tác': o.donViCongTac || '',
       'Ngày nhập ngũ': o.ngayNhapNgu ? new Date(o.ngayNhapNgu).toLocaleDateString('vi-VN') : '',
       'Đảng viên': o.dangVien ? 'Có' : 'Không',
       'Ngày vào Đảng': o.ngayVaoDang ? new Date(o.ngayVaoDang).toLocaleDateString('vi-VN') : '',
