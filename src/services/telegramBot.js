@@ -116,9 +116,19 @@ const initTelegramBot = () => {
     const nowHHMM = moment().tz('Asia/Ho_Chi_Minh').format('HH:mm');
     
     try {
-      const cmdsToRun = await TelegramCommand.find({ scheduleTime: nowHHMM, isActive: true });
-      for (const cmdRecord of cmdsToRun) {
-        if (cmdRecord.type === 'static') {
+      // Tìm tất cả các lệnh có cài đặt giờ
+      const cmdsWithSchedule = await TelegramCommand.find({ 
+        scheduleTime: { $ne: '' }, 
+        isActive: true 
+      });
+
+      for (const cmdRecord of cmdsWithSchedule) {
+        // Tách chuỗi giờ thành mảng (hỗ trợ nhiều giờ, ví dụ: "07:30, 17:00")
+        const times = cmdRecord.scheduleTime.split(',').map(t => t.trim());
+        
+        // Nếu giờ hiện tại nằm trong mảng giờ đã cài đặt
+        if (times.includes(nowHHMM)) {
+          if (cmdRecord.type === 'static') {
           try {
             await bot.sendMessage(groupChatId, cmdRecord.staticText, { parse_mode: 'HTML' });
           } catch (sendErr) {
