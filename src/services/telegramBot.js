@@ -145,6 +145,7 @@ const initTelegramBot = () => {
           }
         }
       }
+      }
     } catch (err) {
       console.error('Lỗi khi chạy cron scheduleTime:', err);
     }
