@@ -1,0 +1,140 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" style="min-width: 600px;">
+    <thead class="bg-light">
+      <tr>
+        <th style="width: 40px;" class="text-center">#</th>
+        <th><%= type === 'pending' ? 'Tên công việc' : 'Tên công việc & Kết quả' %></th>
+        <th class="d-none d-md-table-cell"><%= type === 'pending' ? 'Chu kỳ / Hạn chót' : 'Chu kỳ' %></th>
+        <% if (type === 'completed') { %>
+          <th class="d-none d-md-table-cell">Ngày HT</th>
+        <% } %>
+        <th class="text-end" style="min-width: 120px;">Tác vụ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% taskList.forEach((task, index) => { 
+          let isOverdue = false;
+          let isUrgent = false;
+          let textClass = 'text-dark';
+          let rowClass = type === 'completed' ? 'table-light' : '';
+          
+          if (type === 'pending' && task.dueDate) {
+            const diffDays = Math.ceil((new Date(task.dueDate) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) { isOverdue = true; rowClass = 'table-danger'; textClass = 'text-danger'; }
+            else if (diffDays <= 2) { isUrgent = true; rowClass = 'table-warning'; textClass = 'text-danger'; }
+          }
+      %>
+        <tr class="<%= rowClass %>">
+          <td class="text-center text-muted fw-medium"><%= index + 1 %></td>
+          
+          <% 
+            const assigneeName = task.assignee ? task.assignee.capBac + ' ' + task.assignee.hoTen : 'Chưa giao';
+            const dateStr = type === 'pending' 
+              ? (task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : 'Không có')
+              : (task.completedAt ? new Date(task.completedAt).toLocaleDateString('vi-VN') : '');
+            const statusStr = type === 'pending' ? 'Đang chờ' : 'Đã hoàn thành';
+            const resStr = (task.result || '').replace(/'/g, "\\'");
+          %>
+          
+          <td onclick="showTaskDetail('<%= task.title.replace(/'/g, "\\'") %>', '<%= (task.description || '').replace(/'/g, "\\'") %>', '<%= assigneeName %>', '<%= dateStr %>', '<%= statusStr %>', '<%= resStr %>')" style="cursor: pointer;">
+            <div class="fw-bold <%= type === 'completed' ? 'text-muted text-decoration-line-through' : textClass %>"><%= task.title %></div>
+            
+            <% if (type === 'pending' && task.description) { %>
+              <div class="small text-muted mb-1 d-none d-md-block"><%= task.description %></div>
+            <% } %>
+            
+            <% if (task.assignee) { %>
+              <div class="small fw-semibold mt-1 d-none d-md-block" style="color: <%= type === 'completed' ? '#6c757d' : '#4361ee' %>;">
+                <i class="fas fa-user-tie me-1"></i><%= task.assignee.capBac %> <%= task.assignee.hoTen %>
+              </div>
+            <% } %>
+            
+            <% if (type === 'completed' && task.result) { %>
+              <div class="small text-success fw-medium mt-1 d-none d-md-block"><i class="fas fa-comment-dots me-1"></i>KQ: <%= task.result %></div>
+            <% } %>
+            
+            <div class="d-md-none mt-1">
+              <span class="badge bg-light <%= type === 'completed' ? 'text-success' : 'text-primary' %> border" style="font-size:10px">Chạm xem chi tiết</span>
+            </div>
+          </td>
+          
+          <td class="d-none d-md-table-cell">
+            <% 
+              let freqBadgeClass = 'bg-secondary';
+              let freqText = 'Một lần';
+              switch(task.frequency) {
+                case 'weekly': freqBadgeClass = 'bg-info'; freqText = 'Hàng tuần'; break;
+                case 'monthly': freqBadgeClass = 'bg-primary'; freqText = 'Hàng tháng'; break;
+                case 'quarterly': freqBadgeClass = 'bg-warning text-dark'; freqText = 'Hàng quý'; break;
+                case 'yearly': freqBadgeClass = 'bg-danger'; freqText = 'Hàng năm'; break;
+              }
+            %>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge <%= freqBadgeClass %> rounded-pill fw-normal" style="<%= type === 'completed' ? 'font-size:10px;' : '' %>"><i class="fas fa-sync-alt me-1" style="font-size:10px"></i><%= freqText %></span>
+              <% if (type === 'pending' && task.dueDate) { %>
+                <span class="badge <%= isOverdue ? 'bg-danger text-white' : (isUrgent ? 'bg-warning text-dark' : 'bg-light text-dark border') %> rounded-pill fw-normal">
+                  <i class="far fa-calendar-alt me-1"></i><%= new Date(task.dueDate).toLocaleDateString('vi-VN') %>
+                </span>
+              <% } %>
+            </div>
+          </td>
+          
+          <% if (type === 'completed') { %>
+            <td class="small text-muted d-none d-md-table-cell">
+              <%= task.completedAt ? new Date(task.completedAt).toLocaleDateString('vi-VN') : '' %>
+            </td>
+          <% } %>
+          
+          <td class="text-end text-nowrap">
+            <div class="d-flex justify-content-end gap-2 align-items-center">
+              <% if (type === 'pending') { %>
+                <button type="button" class="btn btn-sm btn-success shadow-sm fw-medium" 
+                        data-bs-toggle="modal" data-bs-target="#completeTaskModal" 
+                        onclick="fillCompleteModal('<%= task._id %>', '<%= task.title.replace(/'/g, "\\'") %>')">
+                  <i class="fas fa-check me-1"></i>Xong
+                </button>
+                
+                <% if (currentUser && (currentUser.role !== 'cbcs' || (task.createdBy && task.createdBy.toString() === currentUser._id.toString()))) { %>
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-light text-muted shadow-none border" type="button" data-bs-toggle="dropdown">
+                      <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                      <li>
+                        <a class="dropdown-item small py-2" href="#" 
+                           data-bs-toggle="modal" data-bs-target="#editTaskModal"
+                           onclick="fillEditModal('<%= task._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= (task.description || '').replace(/'/g, "\\'") %>', '<%= task.frequency %>', '<%= task.dueDate ? task.dueDate.toISOString().split('T')[0] : '' %>', '<%= task.assignee ? task.assignee._id : '' %>')">
+                          <i class="fas fa-edit text-warning me-2"></i>Sửa
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form action="/work-tasks/<%= task._id %>?_method=DELETE" method="POST" onsubmit="confirmAction(event, this, 'Bạn có chắc chắn muốn xóa công việc này?', 'Xóa công việc', '#d33');">
+                          <button type="submit" class="dropdown-item small py-2 text-danger"><i class="fas fa-trash text-danger me-2"></i>Xóa</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                <% } %>
+                
+              <% } else { %>
+                <!-- Lịch sử / Đã xong -->
+                <form action="/work-tasks/<%= task._id %>/toggle?_method=PUT" method="POST" class="d-inline" onsubmit="confirmAction(event, this, 'Bạn muốn đánh dấu CHƯA hoàn thành và XÓA KẾT QUẢ của công việc này?', 'Xác nhận', '#f39c12');">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary shadow-none" title="Khôi phục trạng thái chưa xong">
+                    <i class="fas fa-undo"></i>
+                  </button>
+                </form>
+                
+                <% if (currentUser && (currentUser.role !== 'cbcs' || (task.createdBy && task.createdBy.toString() === currentUser._id.toString()))) { %>
+                  <form action="/work-tasks/<%= task._id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="confirmAction(event, this, 'Bạn có chắc chắn muốn xóa vĩnh viễn công việc này khỏi lịch sử?', 'Xóa vĩnh viễn', '#d33');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger shadow-none"><i class="fas fa-trash"></i></button>
+                  </form>
+                <% } %>
+              <% } %>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

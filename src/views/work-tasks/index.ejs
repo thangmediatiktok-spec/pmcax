@@ -1,0 +1,518 @@
+<%- include('../partials/header', { activeMenu: 'work-tasks' }) %>
+<%- include('../partials/flash') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<div class="row mb-3 align-items-center">
+  <div class="col-sm-6">
+    <h4 class="mb-0 fw-bold"><i class="fas fa-tasks me-2 text-primary"></i>Quản lý công việc</h4>
+    <p class="text-muted small mb-0">Theo dõi tiến độ công việc phát sinh và định kỳ</p>
+  </div>
+  <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+    <% if (currentUser && currentUser.role !== 'cbcs') { %>
+      <a href="/work-tasks/test-telegram" class="btn btn-info shadow-sm fw-semibold text-white">
+        <i class="fab fa-telegram-plane me-2"></i>Test Bot Telegram
+      </a>
+    <% } %>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+      <i class="fas fa-plus me-1"></i> Thêm công việc mới
+    </button>
+  </div>
+</div>
+
+<% if (overdueCount > 0 || urgentCount > 0) { %>
+  <div class="alert alert-danger shadow-sm border-0 py-2 px-3 d-flex align-items-center mb-4">
+    <i class="fas fa-exclamation-triangle fa-lg me-3 text-danger"></i>
+    <div>
+      <strong class="text-danger d-block">Cảnh báo Công việc</strong>
+      <span class="small text-danger">
+        Hệ thống ghi nhận có <b><%= overdueCount %></b> việc trễ hạn và <b><%= urgentCount %></b> việc sắp đến hạn (1-2 ngày tới).
+      </span>
+    </div>
+  </div>
+<% } %>
+
+<div class="row g-4">
+  <!-- Left Column: Task List -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom p-0">
+        <ul class="nav nav-tabs nav-fill border-0" id="taskTabs" role="tablist">
+          <% if (currentUser && currentUser.role === 'cbcs') { %>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-bold text-primary border-0 border-bottom border-primary border-3 py-3" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned" type="button" role="tab">
+                <i class="fas fa-inbox me-1"></i>Được giao
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold text-muted border-0 py-3" id="self-tab" data-bs-toggle="tab" data-bs-target="#self" type="button" role="tab">
+                <i class="fas fa-user-edit me-1"></i>Tự tạo
+              </button>
+            </li>
+          <% } else { %>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-bold text-primary border-0 border-bottom border-primary border-3 py-3" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                <i class="fas fa-hourglass-half me-1"></i>Đang chờ thực hiện
+              </button>
+            </li>
+          <% } %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-muted border-0 py-3" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+              <i class="fas fa-history me-1"></i>Lịch sử & Đã xong
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div class="card-body p-0">
+        <div class="tab-content" id="taskTabsContent">
+          
+          <% if (currentUser && currentUser.role === 'cbcs') { %>
+            <!-- TAB ĐƯỢC GIAO (CBCS) -->
+            <div class="tab-pane fade show active" id="assigned" role="tabpanel">
+              <% const assignedList = tasks.filter(t => t.status === 'pending' && (!t.createdBy || t.createdBy.toString() !== currentUser._id.toString())); %>
+              <% if (assignedList.length > 0) { %>
+                <%- include('./partials/task-table', { taskList: assignedList, type: 'pending' }) %>
+              <% } else { %>
+                <div class="text-center py-5">
+                  <div style="width:80px;height:80px;background:#f8f9fa;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;">
+                    <i class="fas fa-check-double text-success" style="font-size:32px;"></i>
+                  </div>
+                  <h6 class="text-success fw-bold">Tuyệt vời! Không còn việc tồn đọng</h6>
+                  <p class="small text-muted mb-3">Tất cả công việc được giao đã xử lý xong.</p>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- TAB TỰ TẠO (CBCS) -->
+            <div class="tab-pane fade" id="self" role="tabpanel">
+              <% const selfList = tasks.filter(t => t.status === 'pending' && t.createdBy && t.createdBy.toString() === currentUser._id.toString()); %>
+              <% if (selfList.length > 0) { %>
+                <%- include('./partials/task-table', { taskList: selfList, type: 'pending' }) %>
+              <% } else { %>
+                <div class="text-center py-5">
+                  <div style="width:80px;height:80px;background:#f8f9fa;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;">
+                    <i class="fas fa-edit text-muted" style="font-size:32px;"></i>
+                  </div>
+                  <h6 class="text-muted fw-bold">Chưa có công việc tự tạo</h6>
+                  <p class="small text-muted mb-3">Bạn có thể tự tạo công việc để theo dõi tiến độ cá nhân.</p>
+                </div>
+              <% } %>
+            </div>
+          <% } else { %>
+            <!-- TAB ĐANG CHỜ (ADMIN) -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+              <% const pendingList = tasks.filter(t => t.status === 'pending'); %>
+              <% if (pendingList.length > 0) { %>
+                <%- include('./partials/task-table', { taskList: pendingList, type: 'pending' }) %>
+              <% } else { %>
+                <div class="text-center py-5">
+                  <div style="width:80px;height:80px;background:#f8f9fa;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;">
+                    <i class="fas fa-check-double text-success" style="font-size:32px;"></i>
+                  </div>
+                  <h6 class="text-success fw-bold">Tuyệt vời! Không còn việc tồn đọng</h6>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+
+          
+          <!-- TAB LỊCH SỬ -->
+          <div class="tab-pane fade" id="completed" role="tabpanel">
+            <% const completedList = tasks.filter(t => t.status === 'completed'); %>
+            <% if (completedList.length > 0) { %>
+              <%- include('./partials/task-table', { taskList: completedList, type: 'completed' }) %>
+            <% } else { %>
+              <div class="text-center py-5">
+                <div style="width:80px;height:80px;background:#f8f9fa;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;">
+                  <i class="fas fa-history text-muted" style="font-size:32px;"></i>
+                </div>
+                <h6 class="text-muted fw-bold">Chưa có lịch sử</h6>
+                <p class="small text-muted mb-0">Các công việc đã hoàn thành sẽ hiển thị ở đây.</p>
+              </div>
+            <% } %>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Stats & Chart -->
+  <div class="col-lg-4">
+    <!-- Chart: Công Việc Định Kỳ -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-sync-alt me-2 text-primary"></i>Việc Định Kỳ (<%= currentMonthName %>)</h6>
+      </div>
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between text-center mb-3">
+          <div class="px-2">
+            <h4 class="fw-bold text-dark mb-0"><%= statsRecurring.total %></h4>
+            <span class="text-muted" style="font-size:11px;">Tổng số</span>
+          </div>
+          <div class="px-2 border-start border-end">
+            <h4 class="fw-bold text-success mb-0"><%= statsRecurring.completed %></h4>
+            <span class="text-muted" style="font-size:11px;">Đã làm</span>
+          </div>
+          <div class="px-2">
+            <h4 class="fw-bold text-warning mb-0"><%= statsRecurring.pending %></h4>
+            <span class="text-muted" style="font-size:11px;">Đang chờ</span>
+          </div>
+        </div>
+
+        <div class="position-relative d-flex justify-content-center align-items-center" style="height: 180px;">
+          <canvas id="recurringChart"></canvas>
+          <div class="position-absolute d-flex flex-column align-items-center justify-content-center" style="inset:0; pointer-events:none;">
+            <h3 class="fw-bold text-dark mb-0"><%= statsRecurring.rate %>%</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart: Công Việc Phát Sinh -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-warning"></i>Việc 1 Lần (<%= currentMonthName %>)</h6>
+      </div>
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between text-center mb-3">
+          <div class="px-2">
+            <h4 class="fw-bold text-dark mb-0"><%= statsOnce.total %></h4>
+            <span class="text-muted" style="font-size:11px;">Tổng số</span>
+          </div>
+          <div class="px-2 border-start border-end">
+            <h4 class="fw-bold text-success mb-0"><%= statsOnce.completed %></h4>
+            <span class="text-muted" style="font-size:11px;">Đã làm</span>
+          </div>
+          <div class="px-2">
+            <h4 class="fw-bold text-warning mb-0"><%= statsOnce.pending %></h4>
+            <span class="text-muted" style="font-size:11px;">Đang chờ</span>
+          </div>
+        </div>
+
+        <div class="position-relative d-flex justify-content-center align-items-center" style="height: 180px;">
+          <canvas id="onceChart"></canvas>
+          <div class="position-absolute d-flex flex-column align-items-center justify-content-center" style="inset:0; pointer-events:none;">
+            <h3 class="fw-bold text-dark mb-0"><%= statsOnce.rate %>%</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thêm Công Việc -->
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Thêm công việc</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/work-tasks" method="POST">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Tên công việc <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="title" required placeholder="Nhập tên công việc cần làm">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Mô tả chi tiết</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="Ghi chú thêm về công việc này..."></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small text-muted">Chu kỳ lặp lại</label>
+              <select class="form-select" name="frequency">
+                <option value="once">Không lặp lại (1 lần)</option>
+                <option value="weekly">Hàng tuần</option>
+                <option value="monthly">Hàng tháng</option>
+                <option value="quarterly">Hàng quý</option>
+                <option value="yearly">Hàng năm</option>
+              </select>
+            </div>
+            <% if (currentUser && currentUser.role !== 'cbcs') { %>
+            <div class="col-6">
+              <label class="form-label fw-semibold small text-muted">Người được giao</label>
+              <select class="form-select" name="assignee">
+                <option value="">-- Chọn cán bộ --</option>
+                <% officers.forEach(officer => { %>
+                  <option value="<%= officer._id %>"><%= officer.capBac %> <%= officer.hoTen %></option>
+                <% }) %>
+              </select>
+            </div>
+            <% } %>
+            <div class="<%= (currentUser && currentUser.role !== 'cbcs') ? 'col-12' : 'col-6' %>">
+              <label class="form-label fw-semibold small text-muted">Hạn chót (Tùy chọn)</label>
+              <input type="date" class="form-control" name="dueDate">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary fw-medium"><i class="fas fa-save me-1"></i>Lưu công việc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sửa Công Việc -->
+<div class="modal fade" id="editTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning text-dark border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Sửa công việc</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editTaskForm" method="POST">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Tên công việc <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="title" id="editTitle" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Mô tả chi tiết</label>
+            <textarea class="form-control" name="description" id="editDescription" rows="3"></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small text-muted">Chu kỳ lặp lại</label>
+              <select class="form-select" name="frequency" id="editFrequency">
+                <option value="once">Không lặp lại (1 lần)</option>
+                <option value="weekly">Hàng tuần</option>
+                <option value="monthly">Hàng tháng</option>
+                <option value="quarterly">Hàng quý</option>
+                <option value="yearly">Hàng năm</option>
+              </select>
+            </div>
+            <% if (currentUser && currentUser.role !== 'cbcs') { %>
+            <div class="col-6">
+              <label class="form-label fw-semibold small text-muted">Người được giao</label>
+              <select class="form-select" name="assignee" id="editAssignee">
+                <option value="">-- Chọn cán bộ --</option>
+                <% officers.forEach(officer => { %>
+                  <option value="<%= officer._id %>"><%= officer.capBac %> <%= officer.hoTen %></option>
+                <% }) %>
+              </select>
+            </div>
+            <% } %>
+            <div class="<%= (currentUser && currentUser.role !== 'cbcs') ? 'col-12' : 'col-6' %>">
+              <label class="form-label fw-semibold small text-muted">Hạn chót (Tùy chọn)</label>
+              <input type="date" class="form-control" name="dueDate" id="editDueDate">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-warning fw-medium"><i class="fas fa-check me-1"></i>Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nhập Kết Quả Hoàn Thành -->
+<div class="modal fade" id="completeTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-success text-white border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-check-circle me-2"></i>Hoàn thành công việc</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="completeTaskForm" method="POST">
+        <div class="modal-body p-4">
+          <p class="small text-muted mb-3">Bạn đang xác nhận hoàn thành công việc: <strong id="completeTaskTitle" class="text-dark"></strong></p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Kết quả thực hiện <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="result" rows="3" required placeholder="Ghi chú kết quả hoặc số liệu thực tế bạn đã làm..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-success fw-medium"><i class="fas fa-save me-1"></i>Lưu kết quả</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Chi Tiết Công Việc (Dành cho Mobile) -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-info-circle me-2"></i>Chi tiết công việc</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <h5 class="fw-bold text-dark mb-3" id="detailTitle"></h5>
+        
+        <div class="mb-3">
+          <label class="small text-muted fw-semibold">Người phụ trách</label>
+          <div class="fw-medium text-primary" id="detailAssignee"></div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="small text-muted fw-semibold">Hạn chót / Ngày hoàn thành</label>
+          <div class="fw-medium text-danger" id="detailDate"></div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="small text-muted fw-semibold">Trạng thái</label>
+          <div class="fw-medium" id="detailStatus"></div>
+        </div>
+
+        <div class="mb-3" id="detailDescBox">
+          <label class="small text-muted fw-semibold">Mô tả</label>
+          <div class="bg-light p-2 rounded small" id="detailDesc"></div>
+        </div>
+
+        <div class="mb-0" id="detailResultBox" style="display:none;">
+          <label class="small text-muted fw-semibold text-success">Kết quả thực hiện</label>
+          <div class="bg-success-subtle p-2 rounded small text-success fw-medium" id="detailResult"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 bg-light">
+        <button type="button" class="btn btn-secondary btn-sm w-100" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Hàm xác nhận bằng SweetAlert2
+  function confirmAction(event, form, text, confirmBtnText, color) {
+    event.preventDefault();
+    Swal.fire({
+      title: 'Xác nhận',
+      text: text,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: color || '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: confirmBtnText || 'Đồng ý',
+      cancelButtonText: 'Hủy'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+  }
+
+  // Script xử lý Tabs Bootstrap để thay đổi style
+  document.querySelectorAll('#taskTabs .nav-link').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('#taskTabs .nav-link').forEach(t => {
+        t.classList.remove('text-primary', 'border-bottom', 'border-primary', 'border-3');
+        t.classList.add('text-muted');
+      });
+      this.classList.remove('text-muted');
+      this.classList.add('text-primary', 'border-bottom', 'border-primary', 'border-3');
+    });
+  });
+
+  // Fill data to edit modal
+  function fillEditModal(id, title, desc, freq, date, assigneeId) {
+    document.getElementById('editTaskForm').action = '/work-tasks/' + id + '?_method=PUT';
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editDescription').value = desc;
+    document.getElementById('editFrequency').value = freq;
+    document.getElementById('editDueDate').value = date;
+    const assigneeEl = document.getElementById('editAssignee');
+    if (assigneeEl) {
+      assigneeEl.value = assigneeId || '';
+    }
+  }
+
+  // Fill data to complete modal
+  function fillCompleteModal(id, title) {
+    document.getElementById('completeTaskForm').action = '/work-tasks/' + id + '/toggle?_method=PUT';
+    document.getElementById('completeTaskTitle').innerText = title;
+  }
+
+  // Show Task Detail Modal (Mobile)
+  function showTaskDetail(title, desc, assignee, date, status, result) {
+    document.getElementById('detailTitle').innerText = title;
+    document.getElementById('detailAssignee').innerText = assignee;
+    document.getElementById('detailDate').innerText = date;
+    
+    const statusEl = document.getElementById('detailStatus');
+    statusEl.innerText = status;
+    statusEl.className = 'fw-medium ' + (status === 'Đang chờ' ? 'text-warning' : 'text-success');
+
+    const descBox = document.getElementById('detailDescBox');
+    if (desc) {
+      descBox.style.display = 'block';
+      document.getElementById('detailDesc').innerText = desc;
+    } else {
+      descBox.style.display = 'none';
+    }
+
+    const resBox = document.getElementById('detailResultBox');
+    if (result) {
+      resBox.style.display = 'block';
+      document.getElementById('detailResult').innerText = result;
+    } else {
+      resBox.style.display = 'none';
+    }
+
+    new bootstrap.Modal(document.getElementById('taskDetailModal')).show();
+  }
+
+  // Draw charts
+  document.addEventListener('DOMContentLoaded', function() {
+    const commonChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ' ' + context.label + ': ' + context.raw + ' công việc';
+            }
+          }
+        }
+      }
+    };
+
+    // Recurring Tasks Chart
+    const ctxRecurring = document.getElementById('recurringChart');
+    if (ctxRecurring) {
+      new Chart(ctxRecurring, {
+        type: 'doughnut',
+        data: {
+          labels: ['Đã làm', 'Đang chờ'],
+          datasets: [{
+            data: [<%= statsRecurring.completed %>, <%= statsRecurring.pending %>],
+            backgroundColor: ['#2dc653', '#e9ecef'],
+            borderWidth: 0,
+            cutout: '80%'
+          }]
+        },
+        options: commonChartOptions
+      });
+    }
+
+    // Once Tasks Chart
+    const ctxOnce = document.getElementById('onceChart');
+    if (ctxOnce) {
+      new Chart(ctxOnce, {
+        type: 'doughnut',
+        data: {
+          labels: ['Đã làm', 'Đang chờ'],
+          datasets: [{
+            data: [<%= statsOnce.completed %>, <%= statsOnce.pending %>],
+            backgroundColor: ['#ffb703', '#e9ecef'],
+            borderWidth: 0,
+            cutout: '80%'
+          }]
+        },
+        options: commonChartOptions
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -71,6 +71,7 @@ const officerSchema = new mongoose.Schema({
     default: 'Đang công tác'
   },
   ghiChu: { type: String },
+  telegramChatId: { type: String, trim: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

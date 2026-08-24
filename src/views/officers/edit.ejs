@@ -56,9 +56,13 @@
               <label class="form-label small fw-semibold">Email</label>
               <input type="email" name="email" class="form-control" value="<%= officer.email || '' %>">
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Địa chỉ thường trú</label>
               <input type="text" name="diaChiThuongTru" class="form-control" value="<%= officer.diaChiThuongTru || '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold"><i class="fab fa-telegram text-info me-1"></i>Telegram Chat ID</label>
+              <input type="text" name="telegramChatId" class="form-control" value="<%= officer.telegramChatId || '' %>" placeholder="Ví dụ: 123456789">
             </div>
           </div>
         </div>

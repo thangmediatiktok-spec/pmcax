@@ -9,6 +9,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const connectDB = require('./src/config/database');
+const { initCronJobs } = require('./src/services/cronJobs');
 
 const authRoutes = require('./src/routes/auth');
 const dashboardRoutes = require('./src/routes/dashboard');
@@ -22,8 +23,10 @@ const rostersRouter = require('./src/routes/rosters');
 const timesheetsRouter = require('./src/routes/timesheets');
 const adlTasksRoutes = require('./src/routes/adl-tasks');
 const settingsRoutes = require('./src/routes/settings');
+const WorkTasksRoutes = require('./src/routes/work-tasks');
 const Setting = require('./src/models/Setting');
 const backupRoutes = require('./src/routes/backup');
+const telegramConfigRoutes = require('./src/routes/telegram-config');
 
 const app = express();
 
@@ -63,8 +66,10 @@ app.use('/onboarding', onboardingRoutes);
 app.use('/rosters', rostersRouter);
 app.use('/timesheets', timesheetsRouter);
 app.use('/adl-tasks', adlTasksRoutes);
+app.use('/work-tasks', WorkTasksRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/backup', backupRoutes);
+app.use('/telegram-config', telegramConfigRoutes);
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Không tìm thấy trang' });
@@ -81,6 +86,33 @@ mongoose.connect(process.env.MONGODB_URI)
     } else {
       app.locals.require2FA = require2FASetting.value;
     }
+    
+    // Khởi động các tác vụ chạy ngầm
+    initCronJobs();
+
+    // Khởi tạo Bot Telegram (Long Polling)
+    const { initTelegramBot } = require('./src/services/telegramBot');
+    initTelegramBot();
+
+    // Khởi tạo lệnh mặc định
+    const TelegramCommand = require('./src/models/TelegramCommand');
+    
+    const defaultCmds = [
+      { command: 'viewcv', description: 'Xem danh sách công việc', type: 'dynamic', isActive: true },
+      { command: 'lichtruc', description: 'Xem lịch trực hôm nay', type: 'dynamic', isActive: true },
+      { command: 'nghiphep', description: 'Xem danh sách cán bộ nghỉ phép', type: 'dynamic', isActive: true },
+      { command: 'danhba', description: 'Tra cứu thông tin/SĐT cán bộ', type: 'dynamic', isActive: true },
+      { command: 'thongke', description: 'Xem thống kê quân số, công việc', type: 'dynamic', isActive: true },
+      { command: 'hdsd', description: 'Xem hướng dẫn sử dụng và danh sách lệnh', type: 'dynamic', isActive: true }
+    ];
+
+    for (const cmd of defaultCmds) {
+      const exists = await TelegramCommand.findOne({ command: cmd.command });
+      if (!exists) {
+        await TelegramCommand.create(cmd);
+      }
+    }
+
     app.listen(PORT, () => {
       console.log(`Server chạy tại http://localhost:${PORT}`);
     });

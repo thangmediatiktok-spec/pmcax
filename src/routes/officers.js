@@ -262,6 +262,7 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.single('anhDaiDien'), 
     const data = { ...req.body };
     if (req.file) data.anhDaiDien = `/uploads/officers/${req.file.filename}`;
     data.dangVien = data.dangVien === 'true';
+    if (!data.telegramChatId) delete data.telegramChatId;
     if (!data.capBac) delete data.capBac;
     if (!data.ngayVaoDang) delete data.ngayVaoDang;
     if (!data.ngayNhapNgu) delete data.ngayNhapNgu;
@@ -477,6 +478,7 @@ router.put('/:id', isAuthenticated, upload.single('anhDaiDien'), async (req, res
     const data = { ...req.body };
     if (req.file) data.anhDaiDien = `/uploads/officers/${req.file.filename}`;
     data.dangVien = data.dangVien === 'true';
+    if (!data.telegramChatId) delete data.telegramChatId;
     if (!data.capBac) delete data.capBac;
     if (!data.ngayVaoDang) delete data.ngayVaoDang;
     if (!data.ngayNhapNgu) delete data.ngayNhapNgu;

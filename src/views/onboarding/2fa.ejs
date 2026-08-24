@@ -16,6 +16,7 @@
     .btn-submit { background: linear-gradient(135deg,#e63946,#c1121f); border: none; padding: 12px 25px; font-weight: 600; color: white; border-radius: 8px; }
     .btn-submit:hover { background: linear-gradient(135deg,#c1121f,#a00f1a); color: white; }
     .otp-input { text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: bold; max-width: 250px; margin: 0 auto; }
+    .nav-pills-custom .active { background-color: #fff !important; color: #e63946 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   </style>
 </head>
 <body>
@@ -43,18 +44,51 @@
             <div class="qr-container shadow-sm mb-3">
               <img src="<%= qrCodeUrl %>" alt="QR Code" class="img-fluid">
             </div>
-            <p class="text-muted small mb-0">Hoặc nhập mã bí mật thủ công:</p>
-            <code class="fs-5 bg-light p-2 rounded d-inline-block mt-2 fw-bold text-danger"><%= secret %></code>
+            <p class="text-muted small mb-0 mt-3">Hoặc thêm thủ công (nếu dùng chung 1 điện thoại):</p>
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-2">
+              <code class="fs-5 bg-light p-2 rounded fw-bold text-danger" id="secretKey"><%= secret %></code>
+              <button class="btn btn-sm btn-outline-secondary" onclick="copySecret()" title="Copy mã">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
           </div>
           
           <div class="col-md-7 border-start ps-md-5">
             <h6 class="fw-bold text-muted mb-3">2. Hướng dẫn cài đặt</h6>
-            <ul class="text-muted small mb-4 lh-lg">
-              <li>Tải ứng dụng <strong>Google Authenticator</strong> trên điện thoại.</li>
-              <li>Mở ứng dụng, chọn biểu tượng dấu cộng <strong>(+)</strong> và chọn <strong>Quét mã QR</strong>.</li>
-              <li>Đưa camera quét mã QR ở bên trái (hoặc nhập mã bí mật).</li>
-              <li>Sau khi thêm thành công, ứng dụng sẽ hiện 6 con số ngẫu nhiên liên tục thay đổi.</li>
-            </ul>
+            
+            <div class="bg-light p-1 rounded-3 mb-3 d-flex flex-column flex-sm-row gap-1 nav-pills-custom" role="tablist">
+              <button class="btn btn-sm flex-fill active fw-semibold" id="scan-tab" data-bs-toggle="tab" data-bs-target="#scan" type="button" role="tab" style="font-size: 13px; border: none; padding: 8px 12px; color: #495057;">
+                <i class="fas fa-qrcode me-1"></i>Cách 1: Quét mã (2 máy)
+              </button>
+              <button class="btn btn-sm flex-fill fw-semibold" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" style="font-size: 13px; border: none; padding: 8px 12px; color: #495057;">
+                <i class="fas fa-keyboard me-1"></i>Cách 2: Nhập thủ công (1 máy)
+              </button>
+            </div>
+            
+            <div class="tab-content mb-4" id="myTabContent">
+              <div class="tab-pane fade show active" id="scan" role="tabpanel">
+                <ul class="text-muted small lh-lg mb-0">
+                  <li>Tải ứng dụng <strong>Google Authenticator</strong> trên điện thoại.</li>
+                  <li>Mở ứng dụng, chọn biểu tượng dấu cộng <strong>(+)</strong>.</li>
+                  <li>Chọn <strong><i class="fas fa-qrcode"></i> Quét mã QR</strong>.</li>
+                  <li>Đưa camera quét mã QR ở bên trái.</li>
+                </ul>
+              </div>
+              <div class="tab-pane fade" id="manual" role="tabpanel">
+                <div class="alert alert-light border small lh-lg mb-0">
+                  <div class="mb-1"><strong>Bước 1:</strong> Bấm nút Copy mã bí mật (màu đỏ) ở góc bên trái.</div>
+                  <div class="mb-1"><strong>Bước 2:</strong> Mở app Google Authenticator, bấm dấu cộng <strong>(+)</strong>.</div>
+                  <div class="mb-1"><strong>Bước 3:</strong> Chọn <strong><i class="fas fa-keyboard"></i> Nhập khóa thiết lập</strong>.</div>
+                  <div class="mb-1"><strong>Bước 4:</strong> Điền thông tin như sau:</div>
+                  <ul class="mb-1">
+                    <li>Tên tài khoản: <strong>PMCAX</strong></li>
+                    <li>Khóa của bạn: <strong>(Dán mã vừa copy vào đây)</strong></li>
+                    <li>Loại khóa: <strong>Dựa trên thời gian</strong></li>
+                  </ul>
+                  <div><strong>Bước 5:</strong> Bấm nút <strong>Thêm</strong>.</div>
+                </div>
+              </div>
+            </div>
 
             <h6 class="fw-bold text-muted mb-3">3. Nhập mã xác nhận để hoàn tất</h6>
             <form action="/onboarding/2fa/verify" method="POST">
@@ -72,5 +106,15 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function copySecret() {
+      const secret = document.getElementById('secretKey').innerText;
+      navigator.clipboard.writeText(secret).then(() => {
+        alert('Đã copy mã bí mật: ' + secret);
+      }).catch(err => {
+        console.error('Lỗi khi copy: ', err);
+      });
+    }
+  </script>
 </body>
 </html>
