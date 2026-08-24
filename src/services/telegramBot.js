@@ -405,7 +405,8 @@ const handleThongKe = async (chatId) => {
     const pendingTasks = await WorkTask.countDocuments({ status: 'pending' });
     const overdueTasks = await WorkTask.countDocuments({ status: 'pending', dueDate: { $lt: today.toDate() } });
     
-    let message = `📊 <b>THỐNG KÊ QUÂN SỐ HÔM NAY</b>\n\n`;
+    const thoiGian = moment().tz('Asia/Ho_Chi_Minh').format('HH:mm - DD/MM/YYYY');
+    let message = `📊 <b>THỐNG KÊ QUÂN SỐ</b>\n🕐 <i>Cập nhật lúc: ${thoiGian}</i>\n\n`;
     message += `👥 Tổng quân số hoạt động: <b>${totalOfficers}</b> đ/c\n`;
     message += `-------------------------------\n`;
     message += `✅ Đang làm việc: <b>${danLamViec}</b> đ/c\n`;
