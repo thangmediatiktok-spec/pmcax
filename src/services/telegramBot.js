@@ -196,10 +196,10 @@ const handleViewCv = async (chatId, username) => {
       const keyword = username.toLowerCase();
       
       // Tạo một regex linh hoạt
-      const officers = await Officer.find();
+      const officers = await Officer.find({ trangThai: { $in: ['Đang làm việc', 'Đang đi học', 'Đi công tác', 'Nghỉ phép', 'Nghỉ ốm', 'Vắng không lý do'] } });
       const matchedOfficer = officers.find(o => 
         o.hoTen.toLowerCase().includes(keyword) || 
-        o.soDienThoai.includes(keyword)
+        (o.soDienThoai && o.soDienThoai.includes(keyword))
       );
 
       if (matchedOfficer) {
@@ -265,7 +265,7 @@ const handleDanhBa = async (chatId, username) => {
   
   try {
     const keyword = username.toLowerCase();
-    const officers = await Officer.find().populate('toCongTac');
+    const officers = await Officer.find({ trangThai: { $in: ['Đang làm việc', 'Đang đi học', 'Đi công tác', 'Nghỉ phép', 'Nghỉ ốm', 'Vắng không lý do'] } }).populate('toCongTac');
     const matchedOfficers = officers.filter(o => o.hoTen.toLowerCase().includes(keyword) || (o.soDienThoai && o.soDienThoai.includes(keyword)));
     
     if (matchedOfficers.length === 0) {
@@ -389,20 +389,33 @@ const handleThongKe = async (chatId) => {
   try {
     const today = moment().startOf('day');
     
-    const totalOfficers = await Officer.countDocuments({ trangThai: { $nin: ['Đã xuất ngũ', 'Đã nghỉ hưu'] } });
-    const leavesToday = await Leave.countDocuments({ 
-      trangThai: 'Đã duyệt', 
-      tuNgay: { $lte: today.toDate() }, 
-      denNgay: { $gte: today.toDate() } 
-    });
+    // Đếm theo từng trạng thái mới
+    const [danLamViec, dangDiHoc, diCongTac, nghiPhep, nghiOm, vangKhongLyDo] = await Promise.all([
+      Officer.countDocuments({ trangThai: 'Đang làm việc' }),
+      Officer.countDocuments({ trangThai: 'Đang đi học' }),
+      Officer.countDocuments({ trangThai: 'Đi công tác' }),
+      Officer.countDocuments({ trangThai: 'Nghỉ phép' }),
+      Officer.countDocuments({ trangThai: 'Nghỉ ốm' }),
+      Officer.countDocuments({ trangThai: 'Vắng không lý do' }),
+    ]);
+    
+    const totalOfficers = danLamViec + dangDiHoc + diCongTac + nghiPhep + nghiOm + vangKhongLyDo;
+    const laMViec = danLamViec + diCongTac; // Tính quân số thực tế làm việc
     
     const pendingTasks = await WorkTask.countDocuments({ status: 'pending' });
     const overdueTasks = await WorkTask.countDocuments({ status: 'pending', dueDate: { $lt: today.toDate() } });
     
-    let message = `📊 <b>THỐNG KÊ TỔNG HỢP NHANH</b>\n\n`;
-    message += `👥 Quân số đang công tác: <b>${totalOfficers}</b> đ/c\n`;
-    message += `🏖️ Đang nghỉ phép hôm nay: <b>${leavesToday}</b> đ/c\n`;
-    message += `✅ Quân số làm việc: <b>${totalOfficers - leavesToday}</b> đ/c\n`;
+    let message = `📊 <b>THỐNG KÊ QUÂN SỐ HÔM NAY</b>\n\n`;
+    message += `👥 Tổng quân số hoạt động: <b>${totalOfficers}</b> đ/c\n`;
+    message += `-------------------------------\n`;
+    message += `✅ Đang làm việc: <b>${danLamViec}</b> đ/c\n`;
+    if (diCongTac) message += `✈️ Đi công tác: <b>${diCongTac}</b> đ/c\n`;
+    if (dangDiHoc)  message += `📚 Đang đi học: <b>${dangDiHoc}</b> đ/c\n`;
+    if (nghiPhep)   message += `🏖️ Nghỉ phép: <b>${nghiPhep}</b> đ/c\n`;
+    if (nghiOm)     message += `🤒 Nghỉ ốm: <b>${nghiOm}</b> đ/c\n`;
+    if (vangKhongLyDo) message += `⚠️ Vắng không lý do: <b>${vangKhongLyDo}</b> đ/c\n`;
+    message += `-------------------------------\n`;
+    message += `🏢 Quân số có mặt: <b>${laMViec}</b> đ/c\n`;
     message += `-------------------------------\n`;
     message += `📋 Công việc đang xử lý: <b>${pendingTasks}</b> việc\n`;
     message += `🔴 Công việc đã quá hạn: <b>${overdueTasks}</b> việc\n`;
