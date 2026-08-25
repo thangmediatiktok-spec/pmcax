@@ -360,13 +360,34 @@
           </div>
 
           <div id="hd-congviec" class="mb-5">
-            <h4><i class="fas fa-tasks text-primary me-2"></i>6. Quản lý Công việc (Task Manager)</h4>
-            <p>Module này giúp giao việc, theo dõi tiến độ và báo cáo kết quả thực hiện nhiệm vụ một cách chuyên nghiệp.</p>
+            <h4><i class="fas fa-tasks text-primary me-2"></i>6. Quản lý Công việc (Task Manager) & Cảnh báo Telegram</h4>
+            <p>Module này giúp giao việc, theo dõi tiến độ và báo cáo kết quả thực hiện nhiệm vụ một cách chuyên nghiệp. Đặc biệt hệ thống tích hợp sâu với <strong>Bot Telegram</strong> để tự động gửi tin nhắn thông báo tức thì đến điện thoại của CBCS.</p>
+            
+            <div class="text-center my-3 shadow-sm rounded">
+              <img src="/images/guide/task-list.png" alt="Giao diện Quản lý công việc" class="img-fluid rounded border w-100" style="object-fit: cover;" onerror="this.outerHTML='<div class=\'bg-light border rounded d-flex flex-column justify-content-center align-items-center text-muted\' style=\'min-height: 200px;\'><i class=\'fas fa-image fa-3x mb-2\'></i><br>Ảnh chụp màn hình: Giao diện Quản lý công việc</div>'">
+            </div>
+
             <ul class="list-group list-group-flush mb-3 border rounded">
               <li class="list-group-item"><span class="step-badge">1</span><strong>Thêm công việc:</strong> Vào menu <strong>Quản lý công việc</strong> -> Bấm nút <strong>Thêm công việc</strong>. Nhập tên, mô tả chi tiết, chu kỳ lặp lại (một lần, hàng ngày, hàng tuần...).</li>
-              <li class="list-group-item"><span class="step-badge">2</span><strong>Giao việc (Assign):</strong> Chọn giao việc cho "Cá nhân" (kéo thả hoặc chọn vào bảng bên phải) hoặc giao cho "Tổ công tác" (nếu có Tổ). Đặt hạn chót (nếu cần).</li>
-              <li class="list-group-item"><span class="step-badge">3</span><strong>Cập nhật trạng thái:</strong> Người được giao việc sẽ nhận được thông báo qua Bot Telegram. Khi làm xong, bấm nút <strong>Xong (Màu xanh)</strong>, nhập nội dung kết quả thực hiện.</li>
-              <li class="list-group-item"><span class="step-badge">4</span><strong>Theo dõi:</strong> Chỉ huy có thể theo dõi tiến độ công việc đang chờ (Pending) hoặc đã xong (Completed) của toàn đơn vị. Cảnh báo màu vàng/đỏ cho các công việc sắp hoặc quá hạn chót.</li>
+              <li class="list-group-item">
+                <span class="step-badge">2</span><strong>Giao việc (Assign):</strong> Chọn giao việc cho "Cá nhân" (kéo thả hoặc chọn vào bảng bên phải) hoặc giao cho "Tổ công tác" (nếu có Tổ). Đặt hạn chót (nếu cần).
+                <div class="text-center my-3 shadow-sm rounded">
+                  <img src="/images/guide/task-assign.png" alt="Giao việc cho cán bộ" class="img-fluid rounded border w-100" style="object-fit: cover;" onerror="this.outerHTML='<div class=\'bg-light border rounded d-flex flex-column justify-content-center align-items-center text-muted\' style=\'min-height: 150px;\'><i class=\'fas fa-image fa-2x mb-2\'></i><br>Ảnh chụp màn hình: Giao việc cho cán bộ</div>'">
+                </div>
+              </li>
+              <li class="list-group-item">
+                <span class="step-badge">3</span><strong>Thông báo Telegram Tự Động:</strong> Ngay khi bạn giao việc, hệ thống sẽ tự động gọi Bot Telegram và gửi một tin nhắn nhắc việc chi tiết trực tiếp về điện thoại của các cán bộ được giao nhiệm vụ!
+                <div class="text-center my-3 shadow-sm rounded">
+                  <img src="/images/guide/telegram-noti.png" alt="Thông báo Telegram" class="img-fluid rounded border w-100" style="object-fit: cover;" onerror="this.outerHTML='<div class=\'bg-light border rounded d-flex flex-column justify-content-center align-items-center text-muted\' style=\'min-height: 150px;\'><i class=\'fab fa-telegram fa-3x mb-2 text-primary\'></i><br>Ảnh chụp màn hình: Tin nhắn thông báo Telegram</div>'">
+                </div>
+              </li>
+              <li class="list-group-item">
+                <span class="step-badge">4</span><strong>Báo cáo trạng thái:</strong> Người được giao việc làm xong đăng nhập vào hệ thống, bấm nút <strong>Xong (Màu xanh)</strong>, nhập nội dung báo cáo kết quả. Hệ thống cũng sẽ tự động chuyển tiếp kết quả này lên nhóm Telegram của Đơn vị để Chỉ huy nắm.
+                <div class="text-center my-3 shadow-sm rounded">
+                  <img src="/images/guide/task-complete.png" alt="Báo cáo kết quả" class="img-fluid rounded border w-100" style="object-fit: cover;" onerror="this.outerHTML='<div class=\'bg-light border rounded d-flex flex-column justify-content-center align-items-center text-muted\' style=\'min-height: 150px;\'><i class=\'fas fa-image fa-2x mb-2\'></i><br>Ảnh chụp màn hình: Báo cáo kết quả công việc</div>'">
+                </div>
+              </li>
+              <li class="list-group-item"><span class="step-badge">5</span><strong>Theo dõi đa chiều:</strong> Chỉ huy có thể theo dõi tiến độ công việc đang chờ (Pending) hoặc đã xong (Completed) của toàn đơn vị. Cảnh báo màu vàng/đỏ cho các công việc sắp hoặc quá hạn chót.</li>
             </ul>
           </div>
 
