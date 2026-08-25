@@ -63,7 +63,8 @@ router.post('/login', loginLimiter, async (req, res) => {
       capBac: user.officerProfile ? user.officerProfile.capBac : '',
       anhDaiDien: user.officerProfile ? user.officerProfile.anhDaiDien : null,
       maSo: user.officerProfile ? user.officerProfile.maSo : '',
-      twoFactorEnabled: user.twoFactorEnabled
+      twoFactorEnabled: user.twoFactorEnabled,
+      mustChangePassword: user.mustChangePassword
     };
     req.flash('success', `Chào mừng ${user.hoTen}!`);
     res.redirect('/dashboard');
@@ -118,7 +119,8 @@ router.post('/login/2fa', loginLimiter, async (req, res) => {
       capBac: user.officerProfile ? user.officerProfile.capBac : '',
       anhDaiDien: user.officerProfile ? user.officerProfile.anhDaiDien : null,
       maSo: user.officerProfile ? user.officerProfile.maSo : '',
-      twoFactorEnabled: user.twoFactorEnabled
+      twoFactorEnabled: user.twoFactorEnabled,
+      mustChangePassword: user.mustChangePassword
     };
     req.flash('success', `Chào mừng ${user.hoTen}!`);
     res.redirect('/dashboard');

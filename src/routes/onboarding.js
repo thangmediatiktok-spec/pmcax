@@ -30,6 +30,50 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 }
 });
 
+router.get('/password', isAuthenticated, (req, res) => {
+  if (!req.session.user.mustChangePassword) {
+    return res.redirect('/onboarding');
+  }
+  res.render('onboarding/password', { title: 'Đổi mật khẩu mặc định', layout: false });
+});
+
+router.post('/password', isAuthenticated, async (req, res) => {
+  if (!req.session.user.mustChangePassword) {
+    return res.redirect('/onboarding');
+  }
+  
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+    
+    if (newPassword !== confirmPassword) {
+      req.flash('error', 'Mật khẩu xác nhận không khớp');
+      return res.redirect('/onboarding/password');
+    }
+    
+    if (newPassword === oldPassword) {
+      req.flash('error', 'Mật khẩu mới không được trùng mật khẩu cũ');
+      return res.redirect('/onboarding/password');
+    }
+    
+    const user = await User.findById(req.session.user._id);
+    if (!user || !(await user.comparePassword(oldPassword))) {
+      req.flash('error', 'Mật khẩu cũ không chính xác');
+      return res.redirect('/onboarding/password');
+    }
+    
+    user.password = newPassword;
+    user.mustChangePassword = false;
+    await user.save();
+    
+    req.session.user.mustChangePassword = false;
+    req.flash('success', 'Đổi mật khẩu thành công! Vui lòng khai báo thông tin cá nhân.');
+    res.redirect('/onboarding');
+  } catch (err) {
+    req.flash('error', 'Đã có lỗi xảy ra');
+    res.redirect('/onboarding/password');
+  }
+});
+
 router.get('/', isAuthenticated, async (req, res) => {
   // If user already has a profile or is admin, go to step 2 (2FA) or dashboard
   if (req.session.user.role === 'admin' || req.session.user.officerProfile) {

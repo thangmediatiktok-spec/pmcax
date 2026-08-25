@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   lastLogin: { type: Date },
   twoFactorSecret: { type: String },
   twoFactorEnabled: { type: Boolean, default: false },
+  mustChangePassword: { type: Boolean, default: true },
   failedLoginAttempts: { type: Number, default: 0 }
 }, { timestamps: true });
 
