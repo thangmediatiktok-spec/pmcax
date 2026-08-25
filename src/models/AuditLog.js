@@ -13,7 +13,7 @@ const auditLogSchema = new mongoose.Schema({
   },
   targetOfficer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'OfficerProfile'
+    ref: 'Officer'
   },
   ipAddress: {
     type: String
