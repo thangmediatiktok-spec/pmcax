@@ -52,21 +52,21 @@
 
 <div class="wrapper d-flex w-100 h-100">
   <!-- Sidebar -->
-  <nav id="sidebar" class="sidebar d-flex flex-column h-100" style="width:250px;background:url('/images/trong-dong.png') center/cover no-repeat,#1a2235;background-blend-mode:soft-light;flex-shrink:0;transition:width .3s;z-index:1055;">
+  <nav id="sidebar" class="sidebar d-flex flex-column h-100" style="width:250px;background:url('/images/trong-dong.png') center/cover no-repeat,#f4f6f9;flex-shrink:0;transition:width .3s;z-index:1055;">
     <div class="p-3 border-bottom border-secondary">
       <div class="d-flex align-items-center gap-2">
         <div class="shimmer-img-container" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <img src="/images/logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
         </div>
         <div class="sidebar-text">
-          <div class="fw-bold shimmer-text-gold" style="font-size:13px;line-height:1.2">CÔNG AN XÃ<br>CHƯ A THAI</div>
-          <div style="font-size:10px;color:#aebdca">Quản lý CBCS</div>
+          <div class="fw-bold shimmer-text-dark" style="font-size:13px;line-height:1.2">CÔNG AN XÃ<br>CHƯ A THAI</div>
+          <div style="font-size:10px;color:#6c757d">Quản lý CBCS</div>
         </div>
       </div>
     </div>
 
     <ul class="nav flex-column flex-nowrap p-2 mt-1 flex-grow-1 sidebar-scroll" style="overflow-y: auto; overflow-x: hidden;">
-      <li class="sidebar-section-label sidebar-text px-2 py-1" style="font-size:10px;color:#8899aa;text-transform:uppercase;letter-spacing:1px;font-weight:600">Menu chính</li>
+      <li class="sidebar-section-label sidebar-text px-2 py-1" style="font-size:10px;color:#6c757d;text-transform:uppercase;letter-spacing:1px;font-weight:600">Menu chính</li>
       <li class="nav-item">
         <a href="/dashboard" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'dashboard' ? 'active' : '' %>">
           <i class="fas fa-tachometer-alt" style="width:18px;text-align:center"></i>
@@ -75,7 +75,7 @@
       </li>
       <% if (currentUser && currentUser.officerProfile) { %>
       <li class="nav-item">
-        <a href="#personalSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'text-white' : '' %>" style="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'background: rgba(255,255,255,0.05);' : '' %>">
+        <a href="#personalSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'text-danger' : '' %>" style="<%= (locals.activeMenu || '') === 'personal_profile' || (locals.activeMenu || '') === 'personal_documents' ? 'background: rgba(0,0,0,0.05);' : '' %>">
           <div class="d-flex align-items-center gap-2">
             <i class="fas fa-user-shield" style="width:18px;text-align:center"></i>
             <span class="sidebar-text">Cá nhân</span>
@@ -131,7 +131,7 @@
         </a>
       </li>
       <% } else if (currentUser && currentUser.role !== 'cbcs') { %>
-        <a href="#leavesSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '').startsWith('leaves') ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '').startsWith('leaves') ? 'text-white' : '' %>" style="<%= (locals.activeMenu || '').startsWith('leaves') ? 'background: rgba(255,255,255,0.05);' : '' %>">
+        <a href="#leavesSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '').startsWith('leaves') ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '').startsWith('leaves') ? 'text-danger' : '' %>" style="<%= (locals.activeMenu || '').startsWith('leaves') ? 'background: rgba(0,0,0,0.05);' : '' %>">
           <div class="d-flex align-items-center gap-2">
             <i class="fas fa-calendar-check" style="width:18px;text-align:center"></i>
             <span class="sidebar-text">Quản lý Nghỉ phép</span>
@@ -191,7 +191,7 @@
       <% } %>
 
       <% if (currentUser && currentUser.role === 'admin') { %>
-      <li class="sidebar-section-label sidebar-text px-2 py-1 mt-2" style="font-size:10px;color:#8899aa;text-transform:uppercase;letter-spacing:1px;font-weight:600">Quản trị</li>
+      <li class="sidebar-section-label sidebar-text px-2 py-1 mt-2" style="font-size:10px;color:#6c757d;text-transform:uppercase;letter-spacing:1px;font-weight:600">Quản trị</li>
       <li class="nav-item">
         <a href="/users" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center gap-2 <%= locals.activeMenu === 'users' ? 'active' : '' %>">
           <i class="fas fa-users-cog" style="width:18px;text-align:center"></i>
@@ -199,7 +199,7 @@
         </a>
       </li>
       <li class="nav-item">
-        <a href="#settingsSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'text-white' : '' %>" style="<%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'background: rgba(255,255,255,0.05);' : '' %>">
+        <a href="#settingsSubmenu" data-bs-toggle="collapse" aria-expanded="<%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'true' : 'false' %>" class="nav-link sidebar-link rounded mb-1 d-flex align-items-center justify-content-between <%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'text-danger' : '' %>" style="<%= (locals.activeMenu || '').startsWith('settings') || locals.activeMenu === 'telegram-config' ? 'background: rgba(0,0,0,0.05);' : '' %>">
           <div class="d-flex align-items-center gap-2">
             <i class="fas fa-cogs" style="width:18px;text-align:center"></i>
             <span class="sidebar-text">Hệ thống</span>
@@ -240,11 +240,11 @@
       <% } %>
     </ul>
 
-    <div class="p-3 border-top sidebar-text text-center" style="border-color: rgba(255,255,255,0.08) !important; background: rgba(0,0,0,0.2);">
-      <div class="fw-bold mb-1" style="color: #e2e8f0; font-size: 10.5px; letter-spacing: 0.2px;">
-        &copy; 2026 <span class="text-warning">CAX CHƯ A THAI</span>
+    <div class="p-3 border-top sidebar-text text-center" style="border-color: rgba(0,0,0,0.08) !important; background: rgba(0,0,0,0.03);">
+      <div class="fw-bold mb-1" style="color: #495057; font-size: 10.5px; letter-spacing: 0.2px;">
+        &copy; 2026 <span class="text-danger">CAX CHƯ A THAI</span>
       </div>
-      <div style="color: #94a3b8; font-size: 10px; font-family: monospace; letter-spacing: 0.5px;">
+      <div style="color: #6c757d; font-size: 10px; font-family: monospace; letter-spacing: 0.5px;">
         Phiên bản: 1.4.0 (Task Manager)
       </div>
     </div>

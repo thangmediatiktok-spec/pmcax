@@ -1,8 +1,8 @@
 * { box-sizing: border-box; }
 body { font-family: "Segoe UI", Arial, sans-serif; color: #273142; font-size: 14px; }
-.sidebar { color: #cdd6e0; }
-.sidebar-link { color: #aebdca !important; font-size: 13px; padding: 10px 12px; transition: all .2s; }
-.sidebar-link:hover { color: #fff !important; background: #25334a; }
+.sidebar { color: #495057; }
+.sidebar-link { color: #495057 !important; font-size: 13px; padding: 10px 12px; transition: all .2s; }
+.sidebar-link:hover { color: #1a2235 !important; background: #e2e8f0; }
 .sidebar-link.active { color: #fff !important; background: linear-gradient(90deg, #d62839, #b9182b); box-shadow: 0 4px 12px rgba(214,40,57,.25); }
 .sidebar-collapsed { width: 70px !important; }
 .sidebar-collapsed .sidebar-text, .sidebar-collapsed .sidebar-section-label { display: none !important; }
