@@ -50,6 +50,13 @@ router.post('/password', isAuthenticated, async (req, res) => {
       return res.redirect('/onboarding/password');
     }
     
+    // Check password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      req.flash('error', 'Mật khẩu mới không đủ mạnh (Cần ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt)');
+      return res.redirect('/onboarding/password');
+    }
+    
     if (newPassword === oldPassword) {
       req.flash('error', 'Mật khẩu mới không được trùng mật khẩu cũ');
       return res.redirect('/onboarding/password');

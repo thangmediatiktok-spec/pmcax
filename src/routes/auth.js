@@ -143,6 +143,12 @@ router.post('/change-password', async (req, res) => {
       req.flash('error', 'Mật khẩu xác nhận không khớp');
       return res.redirect('back');
     }
+    
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      req.flash('error', 'Mật khẩu mới không đủ mạnh (Cần ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt)');
+      return res.redirect('back');
+    }
     const user = await User.findById(req.session.user._id);
     if (!user || !(await user.comparePassword(oldPassword))) {
       req.flash('error', 'Mật khẩu cũ không chính xác');
