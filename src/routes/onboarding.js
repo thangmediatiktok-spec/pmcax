@@ -9,6 +9,7 @@ const User = require('../models/User');
 const Team = require('../models/Team');
 const { authenticator } = require('otplib');
 const qrcode = require('qrcode');
+const bcrypt = require('bcryptjs');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -76,8 +77,44 @@ router.post('/password', isAuthenticated, async (req, res) => {
     req.flash('success', 'Đổi mật khẩu thành công! Vui lòng khai báo thông tin cá nhân.');
     res.redirect('/onboarding');
   } catch (err) {
-    req.flash('error', 'Đã có lỗi xảy ra');
+    req.flash('error', 'Lỗi đổi mật khẩu');
     res.redirect('/onboarding/password');
+  }
+});
+
+router.get('/pin', isAuthenticated, (req, res) => {
+  if (req.session.user.hasSecurityPin) {
+    return res.redirect('/onboarding');
+  }
+  res.render('onboarding/pin', { title: 'Thiết lập Mã PIN Bảo mật', layout: false });
+});
+
+router.post('/pin/setup', isAuthenticated, async (req, res) => {
+  try {
+    const { pinCode, confirmPinCode } = req.body;
+    
+    if (!pinCode || pinCode.length !== 6 || !/^\d+$/.test(pinCode)) {
+      req.flash('error', 'Mã PIN phải bao gồm đúng 6 chữ số');
+      return res.redirect('/onboarding/pin');
+    }
+    
+    if (pinCode !== confirmPinCode) {
+      req.flash('error', 'Mã PIN xác nhận không khớp');
+      return res.redirect('/onboarding/pin');
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.redirect('/login');
+
+    user.securityPin = await bcrypt.hash(pinCode, 10);
+    await user.save();
+
+    req.session.user.hasSecurityPin = true;
+    req.flash('success', 'Thiết lập Mã PIN bảo mật thành công');
+    res.redirect('/onboarding');
+  } catch (err) {
+    req.flash('error', 'Lỗi thiết lập Mã PIN');
+    res.redirect('/onboarding/pin');
   }
 });
 

@@ -3,11 +3,12 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { isAuthenticated, isEditorOrAdmin } = require('../middleware/auth');
+const { isAuthenticated, isEditorOrAdmin, requiresPin } = require('../middleware/auth');
 const xlsx = require('xlsx');
 const Officer = require('../models/Officer');
 const Team = require('../models/Team');
 const Document = require('../models/Document');
+const AuditLog = require('../models/AuditLog');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -280,7 +281,7 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.single('anhDaiDien'), 
   }
 });
 
-router.get('/export/excel', isAuthenticated, async (req, res) => {
+router.get('/export/excel', isAuthenticated, requiresPin, async (req, res) => {
   try {
     const user = req.session.user;
     const query = {};
@@ -354,7 +355,7 @@ router.get('/export/excel', isAuthenticated, async (req, res) => {
   }
 });
 
-router.get('/:id', isAuthenticated, async (req, res) => {
+router.get('/:id', isAuthenticated, requiresPin, async (req, res) => {
   try {
     const officer = await Officer.findById(req.params.id).populate('toCongTac');
     if (!officer) { req.flash('error', 'Không tìm thấy cán bộ'); return res.redirect('/officers'); }
@@ -386,6 +387,19 @@ router.get('/:id', isAuthenticated, async (req, res) => {
     console.log(`[DEBUG GET /:id] officer._id=${officer._id}, type=${typeof officer._id}`);
     console.log(`[DEBUG GET /:id] strUser=${strUser}, strOfficer=${strOfficer}, match=${strUser === strOfficer}, activeMenu=${activeMenu}`);
     
+    try {
+      await AuditLog.create({
+        action: 'VIEW_PROFILE',
+        user: user._id,
+        targetOfficer: officer._id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        details: `Xem chi tiết hồ sơ cán bộ ${officer.hoTen}`
+      });
+    } catch (logErr) {
+      console.error('AuditLog Error:', logErr);
+    }
+
     res.render('officers/show', { title: officer.hoTen, officer, canEdit, activeMenu });
   } catch (err) {
     console.error(err);
@@ -393,7 +407,7 @@ router.get('/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-router.get('/:id/edit', isAuthenticated, async (req, res) => {
+router.get('/:id/edit', isAuthenticated, requiresPin, async (req, res) => {
   try {
     const [officer, teams] = await Promise.all([
       Officer.findById(req.params.id).populate('toCongTac'),

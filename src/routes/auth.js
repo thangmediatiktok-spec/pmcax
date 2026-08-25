@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticator } = require('otplib');
+const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 
 const loginLimiter = rateLimit({
@@ -62,9 +63,9 @@ router.post('/login', loginLimiter, async (req, res) => {
       officerProfile: user.officerProfile ? user.officerProfile._id : null,
       capBac: user.officerProfile ? user.officerProfile.capBac : '',
       anhDaiDien: user.officerProfile ? user.officerProfile.anhDaiDien : null,
-      maSo: user.officerProfile ? user.officerProfile.maSo : '',
       twoFactorEnabled: user.twoFactorEnabled,
-      mustChangePassword: user.mustChangePassword
+      mustChangePassword: user.mustChangePassword,
+      hasSecurityPin: !!user.securityPin
     };
     req.flash('success', `Chào mừng ${user.hoTen}!`);
     res.redirect('/dashboard');
@@ -118,9 +119,9 @@ router.post('/login/2fa', loginLimiter, async (req, res) => {
       officerProfile: user.officerProfile ? user.officerProfile._id : null,
       capBac: user.officerProfile ? user.officerProfile.capBac : '',
       anhDaiDien: user.officerProfile ? user.officerProfile.anhDaiDien : null,
-      maSo: user.officerProfile ? user.officerProfile.maSo : '',
       twoFactorEnabled: user.twoFactorEnabled,
-      mustChangePassword: user.mustChangePassword
+      mustChangePassword: user.mustChangePassword,
+      hasSecurityPin: !!user.securityPin
     };
     req.flash('success', `Chào mừng ${user.hoTen}!`);
     res.redirect('/dashboard');
@@ -133,6 +134,42 @@ router.post('/login/2fa', loginLimiter, async (req, res) => {
 router.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
+});
+
+router.get('/unlock-pin', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  if (req.session.unlockedProfile) return res.redirect(req.session.returnToAfterPin || '/dashboard');
+  res.render('auth/unlock-pin', { title: 'Mở khóa bảo mật' });
+});
+
+router.post('/unlock-pin', async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  try {
+    const { pinCode } = req.body;
+    const user = await User.findById(req.session.user._id);
+    
+    if (!user || !user.securityPin) {
+      req.flash('error', 'Chưa thiết lập Mã PIN bảo mật');
+      return res.redirect('/onboarding/pin');
+    }
+
+    const isValid = await bcrypt.compare(pinCode, user.securityPin);
+    if (!isValid) {
+      req.flash('error', 'Mã PIN không chính xác');
+      return res.redirect('/unlock-pin');
+    }
+
+    // Unlock session
+    req.session.unlockedProfile = true;
+    
+    // Redirect back to original url
+    const returnTo = req.session.returnToAfterPin || '/dashboard';
+    req.session.returnToAfterPin = null;
+    res.redirect(returnTo);
+  } catch (err) {
+    req.flash('error', 'Lỗi xác thực Mã PIN');
+    res.redirect('/unlock-pin');
+  }
 });
 
 router.post('/change-password', async (req, res) => {

@@ -199,4 +199,59 @@
   </div>
 </div>
 
+<!-- Watermark chống chụp màn hình -->
+<div id="security-watermark" style="
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  opacity: 0.05;
+  user-select: none;
+">
+</div>
+
+<script>
+  function changeStatus(id, newStatus) {
+    if(!confirm(`Xác nhận đổi trạng thái thành: ${newStatus}?`)) return;
+    
+    fetch(`/officers/${id}/trangthai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ trangThai: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        location.reload();
+      } else {
+        alert('Lỗi: ' + data.message);
+      }
+    })
+    .catch(err => {
+      alert('Đã có lỗi xảy ra');
+    });
+  }
+
+  // Generate Watermark
+  const watermarkContainer = document.getElementById('security-watermark');
+  const watermarkText = `Tài khoản: <%= locals.currentUser.username %> - IP: <%= locals.clientIp || '127.0.0.1' %> - Ngày: ${new Date().toLocaleDateString('vi-VN')}`;
+  
+  for(let i = 0; i < 50; i++) {
+    const div = document.createElement('div');
+    div.textContent = watermarkText;
+    div.style.padding = '30px';
+    div.style.transform = 'rotate(-30deg)';
+    div.style.fontSize = '14px';
+    div.style.fontWeight = 'bold';
+    div.style.color = '#000';
+    div.style.whiteSpace = 'nowrap';
+    watermarkContainer.appendChild(div);
+  }
+</script>
+
 <%- include('../partials/footer') %>

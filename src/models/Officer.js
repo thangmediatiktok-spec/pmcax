@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 const officerSchema = new mongoose.Schema({
   maSo: {
@@ -11,9 +12,9 @@ const officerSchema = new mongoose.Schema({
   hoTen: { type: String, required: true, trim: true },
   ngaySinh: { type: Date, required: true },
   gioiTinh: { type: String, enum: ['Nam', 'Nữ'], required: true },
-  queQuan: { type: String, trim: true },
-  diaChiThuongTru: { type: String, trim: true },
-  soCCCD: { type: String, trim: true },
+  queQuan: { type: String, trim: true, get: decrypt, set: encrypt },
+  diaChiThuongTru: { type: String, trim: true, get: decrypt, set: encrypt },
+  soCCCD: { type: String, trim: true, get: decrypt, set: encrypt },
   ngayCapCCCD: { type: Date },
   soDienThoai: { type: String, trim: true },
   email: { type: String, trim: true },
@@ -46,7 +47,7 @@ const officerSchema = new mongoose.Schema({
   ngayNhanCapBac: { type: Date },
   thoiHanTangCap: { type: Date },
   chucDanh: { type: String, trim: true },
-  quaTrinhCongTac: { type: String, trim: true },
+  quaTrinhCongTac: { type: String, trim: true, get: decrypt, set: encrypt },
   hocVan: {
     type: String,
     enum: ['Tiểu học', 'THCS', 'THPT', 'Trung cấp', 'Cao đẳng', 'Đại học', 'Thạc sĩ', 'Tiến sĩ']
@@ -85,7 +86,7 @@ officerSchema.virtual('tuoi').get(function() {
   return age;
 });
 
-officerSchema.set('toJSON', { virtuals: true });
-officerSchema.set('toObject', { virtuals: true });
+officerSchema.set('toJSON', { virtuals: true, getters: true });
+officerSchema.set('toObject', { virtuals: true, getters: true });
 
 module.exports = mongoose.model('Officer', officerSchema);

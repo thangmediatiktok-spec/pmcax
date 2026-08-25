@@ -29,6 +29,7 @@ const WorkTasksRoutes = require('./src/routes/work-tasks');
 const Setting = require('./src/models/Setting');
 const backupRoutes = require('./src/routes/backup');
 const telegramConfigRoutes = require('./src/routes/telegram-config');
+const auditRoutes = require('./src/routes/audit');
 
 const app = express();
 
@@ -65,8 +66,11 @@ app.use(flash());
 
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
-  res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
+  res.locals.success = req.flash('success');
+  res.locals.warning = req.flash('warning');
+  res.locals.info = req.flash('info');
+  res.locals.clientIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
   next();
 });
 
@@ -85,6 +89,7 @@ app.use('/work-tasks', WorkTasksRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/backup', backupRoutes);
 app.use('/telegram-config', telegramConfigRoutes);
+app.use('/audit', auditRoutes);
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Không tìm thấy trang' });

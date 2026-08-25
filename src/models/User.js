@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema({
   twoFactorSecret: { type: String },
   twoFactorEnabled: { type: Boolean, default: false },
   mustChangePassword: { type: Boolean, default: true },
-  failedLoginAttempts: { type: Number, default: 0 }
+  failedLoginAttempts: { type: Number, default: 0 },
+  securityPin: { type: String, default: null } // Hashed PIN code
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {
