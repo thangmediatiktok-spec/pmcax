@@ -156,6 +156,10 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
+router.get('/huong-dan', (req, res) => {
+  res.render('guide', { title: 'Sổ tay Hướng dẫn sử dụng - PMCAX' });
+});
+
 router.get('/', (req, res) => res.redirect('/dashboard'));
 
 module.exports = router;

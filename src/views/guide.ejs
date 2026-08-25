@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #333;
+    }
+    
+    .topbar {
+      background: url('/images/trong-dong.png') center/cover no-repeat, #6f1a24;
+      background-blend-mode: soft-light;
+      border-bottom: 3px solid #ffc107;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      color: #ffc107;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav {
+      position: sticky;
+      top: 90px;
+      height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .nav-pills .nav-link {
+      color: #495057;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-pills .nav-link:hover {
+      background-color: rgba(111, 26, 36, 0.1);
+      color: #6f1a24;
+    }
+
+    .nav-pills .nav-link.active {
+      background-color: #6f1a24;
+      color: #fff;
+      box-shadow: 0 4px 8px rgba(111, 26, 36, 0.3);
+      border-left: 4px solid #ffc107;
+    }
+
+    .content-section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+      border-top: 4px solid #6f1a24;
+    }
+
+    .section-title {
+      color: #6f1a24;
+      font-weight: 700;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #f0f0f0;
+      position: relative;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 60px;
+      height: 2px;
+      background-color: #ffc107;
+    }
+
+    h4 {
+      color: #444;
+      font-weight: 600;
+      margin-top: 25px;
+      margin-bottom: 15px;
+    }
+
+    .feature-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 20px;
+      height: 100%;
+      transition: transform 0.2s;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border-color: #6f1a24;
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      color: #6f1a24;
+      margin-bottom: 15px;
+    }
+
+    .step-badge {
+      background-color: #6f1a24;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+
+    .alert-custom {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-left: 4px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+    
+    code {
+      background-color: #f1f3f5;
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: #e83e8c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body data-bs-spy="scroll" data-bs-target="#guide-nav" data-bs-smooth-scroll="true" tabindex="0">
+
+  <!-- Topbar -->
+  <div class="topbar py-3 px-4 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+      <img src="/images/logo.png" alt="Logo" style="height: 40px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+      <div>
+        <h5 class="brand-title mb-0">CÔNG AN XÃ CHƯ A THAI</h5>
+        <div class="text-white" style="font-size: 12px; opacity: 0.9;">Sổ tay Hướng dẫn sử dụng Phần mềm</div>
+      </div>
+    </div>
+    <a href="/login" class="btn btn-outline-light btn-sm rounded-pill px-3">
+      <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+    </a>
+  </div>
+
+  <div class="container-fluid py-4 px-lg-5">
+    <div class="row">
+      <!-- Sidebar Navigation -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <div class="sidebar-nav pe-3">
+          <h6 class="text-muted fw-bold mb-3 text-uppercase" style="letter-spacing: 1px;">Mục lục</h6>
+          <nav id="guide-nav" class="nav nav-pills flex-column">
+            <a class="nav-link" href="#phan1"><i class="fas fa-shield-alt me-2 text-center" style="width: 20px;"></i>Phần 1: Bảo mật hệ thống</a>
+            <a class="nav-link" href="#phan2"><i class="fas fa-cubes me-2 text-center" style="width: 20px;"></i>Phần 2: Tổng quan chức năng</a>
+            <a class="nav-link" href="#phan3"><i class="fas fa-book me-2 text-center" style="width: 20px;"></i>Phần 3: Hướng dẫn chi tiết</a>
+            <nav class="nav nav-pills flex-column ms-3 mt-1" style="font-size: 14px;">
+              <a class="nav-link py-1" href="#hd-hoso">Quản lý Hồ sơ</a>
+              <a class="nav-link py-1" href="#hd-chamcong">Chấm công & Lịch trực</a>
+              <a class="nav-link py-1" href="#hd-nghiphep">Xin nghỉ phép</a>
+              <a class="nav-link py-1" href="#hd-adl">Định lượng ADL</a>
+              <a class="nav-link py-1" href="#hd-gdd">In Giấy đi đường</a>
+              <a class="nav-link py-1" href="#hd-admin">Chức năng Quản trị</a>
+            </nav>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-9">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold" style="color: #6f1a24;">HƯỚNG DẪN SỬ DỤNG PHẦN MỀM PMCAX</h2>
+          <p class="text-muted fs-5">Tài liệu giúp bạn làm chủ hệ thống quản lý công việc và nhân sự</p>
+        </div>
+
+        <!-- Phần 1: Bảo mật -->
+        <section id="phan1" class="content-section">
+          <h3 class="section-title"><i class="fas fa-shield-alt me-2"></i>Phần 1: Bảo mật hệ thống</h3>
+          <p>Hệ thống Phần mềm Công an xã Chư A Thai được thiết kế với tiêu chuẩn bảo mật cao nhằm bảo vệ dữ liệu nội bộ. Dưới đây là các cơ chế bảo mật mà mỗi cán bộ cần nắm rõ và tuân thủ:</p>
+          
+          <div class="row g-4 mt-2">
+            <div class="col-md-6">
+              <div class="feature-card">
+                <i class="fas fa-key feature-icon"></i>
+                <h5>Xác thực 2 bước (2FA)</h5>
+                <p class="text-muted small">Bắt buộc 100% cán bộ kích hoạt bằng Google Authenticator hoặc Authy. Mọi lần đăng nhập đều yêu cầu nhập mã 6 số từ điện thoại di động cá nhân, chống đánh cắp tài khoản tuyệt đối.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-card">
+                <i class="fas fa-user-lock feature-icon"></i>
+                <h5>Khóa tài khoản tự động</h5>
+                <p class="text-muted small">Nếu nhập sai mật khẩu hoặc mã 2FA quá 5 lần liên tiếp, tài khoản sẽ tự động bị khóa (vô hiệu hóa). Chỉ có Admin mới có quyền mở khóa lại tài khoản.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-card">
+                <i class="fas fa-history feature-icon"></i>
+                <h5>Onboarding bảo mật</h5>
+                <p class="text-muted small">Khi được cấp tài khoản lần đầu, hệ thống bắt buộc cán bộ phải đổi mật khẩu mặc định ngay lập tức trước khi được phép truy cập vào các chức năng bên trong.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-card">
+                <i class="fas fa-server feature-icon"></i>
+                <h5>Mã hóa & Backup</h5>
+                <p class="text-muted small">Mật khẩu được mã hóa một chiều. Dữ liệu hệ thống được sao lưu định kỳ, đảm bảo không mất mát thông tin trong các trường hợp sự cố phần cứng.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Phần 2: Các chức năng -->
+        <section id="phan2" class="content-section">
+          <h3 class="section-title"><i class="fas fa-cubes me-2"></i>Phần 2: Tổng quan các chức năng</h3>
+          <p>Phần mềm tích hợp toàn diện các nghiệp vụ quản lý hành chính nội bộ của Công an cấp xã, với các module chính bao gồm:</p>
+          
+          <div class="row g-3 mt-3">
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-primary text-white rounded p-3 me-3"><i class="fas fa-users fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Quản lý Hồ sơ CBCS</h6>
+                  <p class="mb-0 text-muted small">Quản lý lý lịch trích ngang, cấp bậc, chức vụ, tổ công tác, thông tin cá nhân và tài khoản liên kết của từng cán bộ chiến sĩ.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-success text-white rounded p-3 me-3"><i class="fas fa-calendar-alt fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Bảng Chấm Công & Lịch Trực</h6>
+                  <p class="mb-0 text-muted small">Theo dõi chi tiết ngày làm việc, công tác, nghỉ phép, nghỉ ốm. Hỗ trợ tự động điền nơi công tác để liên thông dữ liệu.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-warning text-dark rounded p-3 me-3"><i class="fas fa-calendar-check fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Xin Nghỉ Phép Tự Động</h6>
+                  <p class="mb-0 text-muted small">Hệ thống xin phép điện tử, duyệt tự động và lập tức đồng bộ ký hiệu "P" vào bảng chấm công không cần can thiệp thủ công.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-danger text-white rounded p-3 me-3"><i class="fas fa-layer-group fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Ăn Định Lượng (ADL)</h6>
+                  <p class="mb-0 text-muted small">Tính năng tự động hóa 100% việc tạo kế hoạch và kết quả công việc hàng ngày bằng thuật toán ngẫu nhiên thông minh dựa trên cấu hình mẫu.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-info text-dark rounded p-3 me-3"><i class="fas fa-file-pdf fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Công Tác Phí (Giấy Đi Đường)</h6>
+                  <p class="mb-0 text-muted small">Gom nhóm các ngày công tác liên tục và tự động xuất Giấy đi đường file PDF chuẩn mẫu quy định, sẵn sàng trình ký.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center p-3 border rounded bg-light">
+                <div class="bg-secondary text-white rounded p-3 me-3"><i class="fas fa-tasks fs-4"></i></div>
+                <div>
+                  <h6 class="fw-bold mb-1">Quản lý Công việc (Task Manager)</h6>
+                  <p class="mb-0 text-muted small">Giao việc cho cá nhân hoặc tổ công tác, theo dõi tiến độ, hẹn giờ báo hạn chót và chu kỳ lặp lại công việc tự động.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Phần 3: Hướng dẫn chi tiết -->
+        <section id="phan3" class="content-section">
+          <h3 class="section-title"><i class="fas fa-book me-2"></i>Phần 3: Hướng dẫn sử dụng chi tiết</h3>
+          
+          <div class="alert-custom mb-4">
+            <i class="fas fa-lightbulb me-2"></i> <strong>Đăng nhập lần đầu (Onboarding):</strong> Sử dụng Tên đăng nhập và Mật khẩu (thường là 12345678) do Admin cấp. Bạn bắt buộc phải: Đổi mật khẩu -> Cập nhật Avatar -> Quét mã QR bật 2FA bằng Google Authenticator mới có thể vào hệ thống.
+          </div>
+
+          <div id="hd-hoso" class="mb-5">
+            <h4><i class="fas fa-address-card text-secondary me-2"></i>1. Quản lý Hồ sơ Cán bộ</h4>
+            <p>Hồ sơ Cán bộ là nền tảng để hệ thống liên kết các dữ liệu (chấm công, nghỉ phép).</p>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span><strong>Tạo Hồ sơ mới (Admin/Chỉ huy):</strong> Vào menu <strong>Cán bộ chiến sĩ</strong> -> Nhấn <strong>Thêm CBCS</strong>. Nhập đầy đủ thông tin (Họ tên, cấp bậc, chức vụ, tổ...).</li>
+              <li class="list-group-item"><span class="step-badge">2</span><strong>Liên kết Tài khoản với Hồ sơ:</strong> Để một tài khoản có thể xin phép, chấm công, Admin sửa hồ sơ, kéo xuống phần "Tài khoản liên kết" và gán tên đăng nhập tương ứng.</li>
+              <li class="list-group-item"><span class="step-badge">3</span><strong>Xem Hồ sơ:</strong> Bấm vào nút "Xem" (con mắt) để xem chi tiết lý lịch và các tài liệu đính kèm của cán bộ.</li>
+            </ul>
+          </div>
+
+          <div id="hd-chamcong" class="mb-5">
+            <h4><i class="fas fa-calendar-check text-success me-2"></i>2. Bảng Chấm Công & Lịch Trực</h4>
+            <p>Bảng chấm công là nơi tổng hợp ngày làm việc, đi công tác, nghỉ phép của toàn bộ CBCS trong tháng.</p>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span>Vào menu <strong>Theo dõi chấm công tổ</strong>. Chọn Tháng/Năm và Tổ công tác cần xem.</li>
+              <li class="list-group-item"><span class="step-badge">2</span>Tại bảng, click vào ô ngày của một cán bộ để cập nhật trạng thái:<br>
+                <div class="mt-2 p-2 bg-light rounded d-inline-block">
+                  <code>+</code> : Làm việc &nbsp; | &nbsp; <code>A</code> : Làm việc (có ăn định lượng) &nbsp; | &nbsp; <code>CT-A</code>: Đi công tác (có ADL)<br>
+                  <code>P</code> : Nghỉ phép &nbsp; | &nbsp; <code>NL</code>: Nghỉ lễ &nbsp; | &nbsp; <code>O</code> : Ốm &nbsp; | &nbsp; <code>K</code> : Không lương
+                </div>
+              </li>
+              <li class="list-group-item"><span class="step-badge">3</span><strong>Ghi chú (Bắt buộc với CT-A):</strong> Nhập tên Thôn/Xã nơi đi công tác vào ô Ghi chú. Hệ thống tự động dùng chữ này điền vào Giấy đi đường và ADL.</li>
+            </ul>
+          </div>
+
+          <div id="hd-nghiphep" class="mb-5">
+            <h4><i class="fas fa-plane-departure text-warning me-2"></i>3. Xin Nghỉ Phép</h4>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span>Cán bộ vào menu <strong>Nghỉ phép của tôi</strong> -> Nhấn <strong>Tạo đơn xin phép</strong>.</li>
+              <li class="list-group-item"><span class="step-badge">2</span>Chọn loại phép, Ngày bắt đầu, Ngày kết thúc. Ghi rõ Lý do nghỉ và Nơi nghỉ.</li>
+              <li class="list-group-item"><span class="step-badge">3</span>Nhấn <strong>Lưu</strong>. <em>(Đơn sẽ được duyệt tự động ngay lập tức).</em></li>
+              <li class="list-group-item text-success bg-light"><i class="fas fa-check-circle me-2"></i><strong>Đồng bộ tự động:</strong> Ngay khi đơn được tạo, hệ thống tự động điền mã <code>P</code> vào Bảng chấm công của cán bộ đó.</li>
+            </ul>
+          </div>
+
+          <div id="hd-adl" class="mb-5">
+            <h4><i class="fas fa-hamburger text-danger me-2"></i>4. Bảng Ăn Định Lượng (ADL)</h4>
+            <p>Tính năng sinh Kế hoạch và Kết quả công việc tự động cho những ngày làm việc có ăn định lượng (<code>A</code> và <code>CT-A</code>).</p>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span><strong>Cấu hình (Admin):</strong> Vào menu <strong>Công việc ADL</strong> để tạo "Ngân hàng" công việc với các biến tự động: <code>[THON]</code>, <code>[GIO]</code>, <code>[SO]</code>, <code>[DT]</code>, <code>[XACT]</code>.</li>
+              <li class="list-group-item"><span class="step-badge">2</span><strong>Chốt & Random:</strong> Từ <em>Bảng chấm công</em>, bấm vào tên cán bộ -> Chọn tab <strong>Định lượng ăn (ADL)</strong>.</li>
+              <li class="list-group-item"><span class="step-badge">3</span>Hệ thống tự động load các ngày A và CT-A. Bấm nút <strong>Random Công việc A</strong> hoặc <strong>Random Công tác</strong> ở góc trên để máy trộn chữ tự động.</li>
+              <li class="list-group-item"><span class="step-badge">4</span>Khi đã hoàn thiện, bấm <strong>Lưu toàn bộ</strong> (Khóa bảng).</li>
+            </ul>
+          </div>
+
+          <div id="hd-gdd" class="mb-5">
+            <h4><i class="fas fa-file-invoice text-info me-2"></i>5. In Giấy Đi Đường</h4>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span>Từ <em>Bảng chấm công</em>, bấm vào tên một Cán bộ -> Chọn tab <strong>Công tác phí</strong>.</li>
+              <li class="list-group-item"><span class="step-badge">2</span>Hệ thống tự động quét các ngày <code>CT-A</code> liên tiếp cùng 1 địa điểm thành các Chuyến công tác.</li>
+              <li class="list-group-item"><span class="step-badge">3</span>Nhập Mục đích công tác chung. Sau đó bấm <strong>In Giấy Đi Đường</strong> để xuất PDF tuyệt đẹp.</li>
+            </ul>
+          </div>
+
+          <div id="hd-admin">
+            <h4><i class="fas fa-cogs text-dark me-2"></i>6. Các Chức Năng Quản Trị (Admin)</h4>
+            <ul class="list-group list-group-flush mb-3 border rounded">
+              <li class="list-group-item"><span class="step-badge">1</span><strong>Nhập/Xuất Excel:</strong> Tải file mẫu, điền dữ liệu và upload ở phần Cán bộ chiến sĩ để nhập liệu hàng loạt.</li>
+              <li class="list-group-item"><span class="step-badge">2</span><strong>Tắt 2FA:</strong> Vào <em>Tài khoản</em>, bấm nút <em>Tắt 2FA</em> (Điện thoại có dấu X đỏ) nếu cán bộ mất điện thoại.</li>
+              <li class="list-group-item"><span class="step-badge">3</span><strong>Sao lưu dữ liệu:</strong> Vào menu <em>Sao lưu dữ liệu</em> để tải file JSON toàn bộ cơ sở dữ liệu định kỳ.</li>
+              <li class="list-group-item"><span class="step-badge">4</span><strong>Cài đặt Hệ thống & Bot Telegram:</strong> Vào menu hệ thống cấu hình tên đơn vị, ca trực và kết nối Bot Telegram để nhận thông báo công việc.</li>
+            </ul>
+          </div>
+          
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+      <p class="mb-1 fw-bold">HỆ THỐNG PHẦN MỀM QUẢN LÝ CÔNG AN XÃ - PMCAX</p>
+      <p class="mb-0 text-white-50 small">Bản quyền © 2026 L9GPROMAX - Phát triển riêng cho CAX Chư A Thai</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
