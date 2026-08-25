@@ -26,7 +26,7 @@
           </div>
         <% } %>
         <h6 class="fw-bold mb-1"><%= officer.hoTen %></h6>
-        <span class="badge bg-secondary mb-2"><%= officer.maSo %></span>
+        <span class="badge bg-secondary mb-2"><%= (typeof isUnlocked !== 'undefined' ? isUnlocked : locals.unlockedProfile) ? officer.maSo : '***-***' %></span>
         <div class="mb-2">
           <span class="badge bg-primary px-3 py-2">
             <%= officer.toCongTac ? officer.toCongTac.ten : '-' %>
@@ -52,7 +52,7 @@
           </div>
           <div class="d-flex justify-content-between mb-1">
             <span class="text-muted">Tuổi</span>
-            <span class="fw-semibold"><%= officer.tuoi || '-' %></span>
+            <span class="fw-semibold"><%= (typeof isUnlocked !== 'undefined' ? isUnlocked : locals.unlockedProfile) ? (officer.tuoi || '-') : '**' %></span>
           </div>
           <div class="d-flex justify-content-between">
             <span class="text-muted">Giới tính</span>
@@ -117,7 +117,7 @@
             const maskText = (text) => text ? '********' : '-';
             
             const fields = [
-            ['Ngày sinh', fmtDate(officer.ngaySinh)],
+            ['Ngày sinh', isUnlocked ? fmtDate(officer.ngaySinh) : '********'],
             ['Số CCCD', isUnlocked ? officer.soCCCD || '-' : maskCCCD(officer.soCCCD)],
             ['Ngày cấp CCCD', fmtDate(officer.ngayCapCCCD)],
             ['Số điện thoại', isUnlocked ? officer.soDienThoai || '-' : maskPhone(officer.soDienThoai)],
