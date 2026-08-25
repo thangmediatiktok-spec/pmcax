@@ -143,6 +143,11 @@
       color: #e83e8c;
       font-weight: bold;
     }
+
+    /* Fix Bootstrap ScrollSpy and anchor jumping with sticky header */
+    section[id], div[id^="hd-"] {
+      scroll-margin-top: 110px;
+    }
   </style>
 </head>
 <body data-bs-spy="scroll" data-bs-target="#guide-nav" data-bs-smooth-scroll="true" tabindex="0">
