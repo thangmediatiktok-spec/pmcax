@@ -122,15 +122,6 @@ Module này giúp giao việc, theo dõi tiến độ và báo cáo kết quả 
    ![Báo cáo kết quả](/images/guide/task-complete.png)
 5. **Theo dõi đa chiều:** Chỉ huy có thể theo dõi tiến độ công việc đang chờ (Pending) hoặc đã xong (Completed) của toàn đơn vị. Cảnh báo màu vàng/đỏ cho các công việc sắp hoặc quá hạn chót.
 
----
 
-## 7. Các Chức Năng Quản Trị (Admin)
-
-Nếu bạn là Admin, bạn có thêm các đặc quyền sau:
-- **Nhập/Xuất dữ liệu Excel:** Ở phần Hồ sơ CBCS hoặc Quản lý Tài khoản đều có nút Import từ Excel. Hãy tải file mẫu, điền dữ liệu và upload để tiết kiệm thời gian nhập liệu.
-- **Tắt 2FA cho người dùng:** Nếu một cán bộ bị mất điện thoại và không thể lấy mã 2FA, Admin vào phần **Tài khoản hệ thống**, bấm nút **Tắt 2FA (Hình điện thoại có dấu chéo)**. Lần đăng nhập sau Cán bộ đó sẽ được quét lại mã QR mới.
-- **Sao lưu dữ liệu:** Vào menu **Sao lưu & Phục hồi** để tải bản Backup toàn bộ dữ liệu ra máy tính định kỳ.
-
----
 
 *Cảm ơn bạn đã sử dụng Phần mềm Quản lý Công an xã. Nếu có thắc mắc trong quá trình vận hành, vui lòng liên hệ bộ phận kỹ thuật để được hỗ trợ!*
