@@ -1,5 +1,8 @@
 <%- include('../partials/header') %>
 
+<!-- DataTables CSS -->
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
 <%
   const fmtTime = (d) => new Date(d).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   const fmtDate = (d) => new Date(d).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -14,9 +17,9 @@
   </div>
 
   <div class="card border-0 shadow-sm rounded-3">
-    <div class="card-body p-0">
+    <div class="card-body p-3">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="auditTable" class="table table-hover align-middle mb-0 w-100">
           <thead class="bg-light">
             <tr>
               <th class="py-3 px-4">Thời gian</th>
@@ -85,39 +88,39 @@
         </table>
       </div>
     </div>
-    
-    <% if (totalPages > 1) { %>
-    <div class="card-footer bg-white py-3">
-      <nav>
-        <ul class="pagination pagination-sm justify-content-center mb-0">
-          <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
-            <a class="page-link" href="?page=<%= page - 1 %>">Trước</a>
-          </li>
-          <% 
-            let startPage = Math.max(1, page - 2);
-            let endPage = Math.min(totalPages, page + 2);
-            
-            if (startPage > 1) { %>
-              <li class="page-item disabled"><span class="page-link">...</span></li>
-          <% } %>
-          
-          <% for(let i = startPage; i <= endPage; i++) { %>
-            <li class="page-item <%= page === i ? 'active' : '' %>">
-              <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-            </li>
-          <% } %>
-          
-          <% if (endPage < totalPages) { %>
-              <li class="page-item disabled"><span class="page-link">...</span></li>
-          <% } %>
-          <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
-            <a class="page-link" href="?page=<%= page + 1 %>">Sau</a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <% } %>
   </div>
 </div>
+
+<!-- jQuery & DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#auditTable').DataTable({
+      "order": [], // Không tự động sort cột đầu tiên vì đã sort từ server
+      "pageLength": 15,
+      "lengthMenu": [[10, 15, 25, 50, 100, -1], [10, 15, 25, 50, 100, "Tất cả"]],
+      "language": {
+        "sProcessing":   "Đang xử lý...",
+        "sLengthMenu":   "Hiển thị _MENU_ dòng",
+        "sZeroRecords":  "Không tìm thấy dòng nào phù hợp",
+        "sInfo":         "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
+        "sInfoEmpty":    "Đang xem 0 đến 0 trong tổng số 0 mục",
+        "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+        "sInfoPostFix":  "",
+        "sSearch":       "Tìm kiếm:",
+        "sUrl":          "",
+        "oPaginate": {
+            "sFirst":    "Đầu",
+            "sPrevious": "Trước",
+            "sNext":     "Tiếp",
+            "sLast":     "Cuối"
+        }
+      }
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>
