@@ -6,7 +6,7 @@ const AuditLog = require('../models/AuditLog');
 router.get('/', isAuthenticated, isEditorOrAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 10;
     
     // Admin and Truong CAX can see all logs, Pho CAX can only see logs of their team members?
     // For simplicity, only admin and truong_cax can see audit logs
