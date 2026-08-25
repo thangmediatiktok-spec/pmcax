@@ -1,5 +1,10 @@
 <%- include('../partials/header') %>
 
+<%
+  const fmtTime = (d) => new Date(d).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const fmtDate = (d) => new Date(d).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+%>
+
 <div class="container-fluid px-4">
   <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
     <div>
@@ -27,8 +32,8 @@
               <% logs.forEach(log => { %>
                 <tr>
                   <td class="px-4">
-                    <span class="text-nowrap fw-medium"><%= new Date(log.createdAt).toLocaleDateString('vi-VN') %></span><br>
-                    <span class="text-muted small"><%= new Date(log.createdAt).toLocaleTimeString('vi-VN') %></span>
+                    <span class="text-nowrap fw-medium"><%= fmtDate(log.createdAt) %></span><br>
+                    <span class="text-muted small"><%= fmtTime(log.createdAt) %></span>
                   </td>
                   <td>
                     <% if (log.user) { %>

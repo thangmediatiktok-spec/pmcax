@@ -388,14 +388,25 @@ router.get('/:id', isAuthenticated, async (req, res) => {
     console.log(`[DEBUG GET /:id] strUser=${strUser}, strOfficer=${strOfficer}, match=${strUser === strOfficer}, activeMenu=${activeMenu}`);
     
     try {
-      await AuditLog.create({
+      // Tránh spam log: chỉ ghi nhận nếu trong 30 phút qua chưa có log xem hồ sơ này từ user này
+      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const recentLog = await AuditLog.findOne({
         action: 'VIEW_PROFILE',
         user: user._id,
         targetOfficer: officer._id,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent'),
-        details: `Xem chi tiết hồ sơ cán bộ ${officer.hoTen}`
+        createdAt: { $gte: thirtyMinsAgo }
       });
+
+      if (!recentLog) {
+        await AuditLog.create({
+          action: 'VIEW_PROFILE',
+          user: user._id,
+          targetOfficer: officer._id,
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+          details: `Xem chi tiết hồ sơ cán bộ ${officer.hoTen}`
+        });
+      }
     } catch (logErr) {
       console.error('AuditLog Error:', logErr);
     }
