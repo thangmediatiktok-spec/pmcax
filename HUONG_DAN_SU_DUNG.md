@@ -107,6 +107,17 @@ Hệ thống hỗ trợ in tự động Giấy đi đường cho Cán bộ vào 
 
 ---
 
+## 6. Quản lý Công việc (Task Manager)
+
+Module này giúp giao việc, theo dõi tiến độ và báo cáo kết quả thực hiện nhiệm vụ một cách chuyên nghiệp.
+
+1. **Thêm công việc:** Vào menu **Quản lý công việc** -> Bấm nút **Thêm công việc**. Nhập tên, mô tả chi tiết, chu kỳ lặp lại (một lần, hàng ngày, hàng tuần...).
+2. **Giao việc (Assign):** Chọn giao việc cho "Cá nhân" (kéo thả hoặc chọn vào bảng bên phải) hoặc giao cho "Tổ công tác" (nếu có Tổ). Đặt hạn chót (nếu cần).
+3. **Cập nhật trạng thái:** Người được giao việc sẽ nhận được thông báo qua Bot Telegram. Khi làm xong, bấm nút **Xong (Màu xanh)**, nhập nội dung kết quả thực hiện.
+4. **Theo dõi:** Chỉ huy có thể theo dõi tiến độ công việc đang chờ (Pending) hoặc đã xong (Completed) của toàn đơn vị. Cảnh báo màu vàng/đỏ cho các công việc sắp hoặc quá hạn chót.
+
+---
+
 ## 7. Các Chức Năng Quản Trị (Admin)
 
 Nếu bạn là Admin, bạn có thêm các đặc quyền sau:
