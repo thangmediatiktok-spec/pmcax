@@ -210,36 +210,36 @@
 
         <!-- Phần 1: Bảo mật -->
         <section id="phan1" class="content-section">
-          <h3 class="section-title"><i class="fas fa-shield-alt me-2"></i>Phần 1: Bảo mật hệ thống</h3>
-          <p>Hệ thống Phần mềm Công an xã Chư A Thai được thiết kế với tiêu chuẩn bảo mật cao nhằm bảo vệ dữ liệu nội bộ. Dưới đây là các cơ chế bảo mật mà mỗi cán bộ cần nắm rõ và tuân thủ:</p>
+          <h3 class="section-title"><i class="fas fa-shield-alt me-2"></i>Phần 1: Hệ thống Bảo mật Tối mật 4 Lớp</h3>
+          <p>Hệ thống Phần mềm Công an xã Chư A Thai được thiết kế với cơ chế bảo mật đa tầng nghiêm ngặt nhằm bảo vệ tuyệt đối dữ liệu nội bộ. Dưới đây là 4 lớp bảo mật mà hệ thống trang bị:</p>
           
           <div class="row g-4 mt-2">
             <div class="col-md-6">
               <div class="feature-card">
                 <i class="fas fa-key feature-icon"></i>
-                <h5>Xác thực 2 bước (2FA)</h5>
-                <p class="text-muted small">Bắt buộc 100% cán bộ kích hoạt bằng Google Authenticator hoặc Authy. Mọi lần đăng nhập đều yêu cầu nhập mã 6 số từ điện thoại di động cá nhân, chống đánh cắp tài khoản tuyệt đối.</p>
+                <h5>Lớp 1: Xác thực 2 bước (2FA)</h5>
+                <p class="text-muted small">Bắt buộc 100% cán bộ kích hoạt bằng Google Authenticator. Mọi lần đăng nhập đều yêu cầu nhập mã 6 số từ điện thoại di động cá nhân, chống đánh cắp tài khoản tuyệt đối.</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="feature-card">
-                <i class="fas fa-user-lock feature-icon"></i>
-                <h5>Khóa tài khoản tự động</h5>
-                <p class="text-muted small">Nếu nhập sai mật khẩu hoặc mã 2FA quá 5 lần liên tiếp, tài khoản sẽ tự động bị khóa (vô hiệu hóa). Chỉ có Admin mới có quyền mở khóa lại tài khoản.</p>
+                <i class="fas fa-lock feature-icon"></i>
+                <h5>Lớp 2: Mã PIN bảo mật cấp 2</h5>
+                <p class="text-muted small">Khi xem chi tiết Hồ sơ, dữ liệu nhạy cảm (SĐT, CCCD, Quê quán) sẽ tự động bị che dấu (dạng <code>09****567</code>). Cần nhập đúng Mã PIN 6 số để có thể xem thông tin đầy đủ.</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="feature-card">
-                <i class="fas fa-history feature-icon"></i>
-                <h5>Onboarding bảo mật</h5>
-                <p class="text-muted small">Khi được cấp tài khoản lần đầu, hệ thống bắt buộc cán bộ phải đổi mật khẩu mặc định ngay lập tức trước khi được phép truy cập vào các chức năng bên trong.</p>
+                <i class="fas fa-database feature-icon"></i>
+                <h5>Lớp 3: Mã hóa CSDL (AES-256)</h5>
+                <p class="text-muted small">Các thông tin nhạy cảm được hệ thống mã hóa cấp thấp trước khi lưu trữ xuống Cơ sở dữ liệu. Dù dữ liệu bị đánh cắp bởi hacker, nội dung bên trong vẫn là các chuỗi ký tự vô nghĩa.</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="feature-card">
-                <i class="fas fa-server feature-icon"></i>
-                <h5>Mã hóa & Backup</h5>
-                <p class="text-muted small">Mật khẩu được mã hóa một chiều. Dữ liệu hệ thống được sao lưu định kỳ, đảm bảo không mất mát thông tin trong các trường hợp sự cố phần cứng.</p>
+                <i class="fas fa-user-secret feature-icon"></i>
+                <h5>Lớp 4: Audit Log & Watermark</h5>
+                <p class="text-muted small">Mọi thao tác "Xem/Sửa/Xuất file" đều bị ghi nhận vào Nhật ký. Khi xem hồ sơ, màn hình sẽ hiển thị mạng lưới Watermark chìm (Tên, IP, Thời gian) để chống chụp trộm màn hình.</p>
               </div>
             </div>
           </div>

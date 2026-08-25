@@ -11,20 +11,29 @@ Chào mừng bạn đến với tài liệu Hướng dẫn sử dụng Phần m�
 - Sử dụng **Tên đăng nhập** và **Mật khẩu** do Admin (Quản trị viên) cấp để đăng nhập.
 - (Mật khẩu mặc định nếu được Admin import từ Excel thường là `12345678`).
 
-### 1.2. Cập nhật thông tin và Kích hoạt 2FA (Onboarding)
-Ngay sau khi đăng nhập thành công lần đầu tiên, hệ thống sẽ yêu cầu bạn hoàn thiện hồ sơ:
+### 1.2. Cập nhật thông tin, 2FA và Mã PIN (Onboarding)
+Ngay sau khi đăng nhập thành công lần đầu tiên, hệ thống sẽ yêu cầu bạn hoàn thiện các lớp bảo mật:
 1. **Đổi mật khẩu:** Bạn bắt buộc phải đổi mật khẩu mới để đảm bảo an toàn.
-2. **Cập nhật ảnh đại diện (Avatar):** Tải lên hình ảnh cá nhân (lưu ý dung lượng nhỏ hơn quy định của máy chủ).
+2. **Thiết lập Mã PIN Cấp 2:** Khai báo mã PIN gồm 6 số. Mã này dùng để mở khóa khi bạn muốn xem chi tiết các Dữ liệu Tối mật trong Hồ sơ Cán bộ.
 3. **Bật Bảo mật 2 lớp (2FA):** 
    - Hệ thống sẽ hiển thị một **Mã QR**.
    - Sử dụng ứng dụng **Google Authenticator** (hoặc Authy) trên điện thoại để quét mã QR này.
    - Nhập 6 số hiện ra trên điện thoại vào ô xác nhận để hoàn tất.
-   - *Lưu ý:* Từ các lần đăng nhập sau, ngoài mật khẩu, bạn sẽ cần mở điện thoại để nhập 6 số này.
 4. Sau khi hoàn tất, hệ thống sẽ đưa bạn vào Trang chủ (Dashboard).
 
 ---
 
-## 2. Quản lý Hồ sơ Cán bộ
+## 2. Hệ thống Bảo mật Tối mật 4 Lớp
+
+Hệ thống được thiết kế với cơ chế bảo mật đa tầng nghiêm ngặt:
+- **Lớp 1 (Xác thực 2 bước - 2FA):** Bắt buộc nhập mã OTP từ điện thoại cá nhân khi đăng nhập.
+- **Lớp 2 (Mã PIN bảo mật cấp 2):** Khi xem chi tiết Hồ sơ, dữ liệu nhạy cảm (SĐT, CCCD, Quê quán) sẽ tự động bị che dấu (`09****567`). Cần nhập đúng Mã PIN 6 số để "Hiển thị toàn bộ".
+- **Lớp 3 (Mã hóa cơ sở dữ liệu - AES 256):** Các trường thông tin nhạy cảm được mã hóa tự động trước khi lưu xuống Database. Dù Database bị đánh cắp cũng không thể đọc được nội dung thật.
+- **Lớp 4 (Nhật ký Audit & Watermark):** Mọi hành động "Xem/Sửa/Xuất file" hồ sơ đều bị hệ thống ghi log lại ẩn danh. Khi xem hồ sơ, màn hình sẽ hiển thị mạng lưới Watermark (Tên tài khoản, IP, Ngày giờ) giúp chống chụp trộm màn hình tuồn dữ liệu ra ngoài.
+
+---
+
+## 3. Quản lý Hồ sơ Cán bộ
 Hồ sơ Cán bộ là nền tảng để hệ thống liên kết các dữ liệu (chấm công, nghỉ phép).
 
 - **Tạo Hồ sơ mới (Chỉ dành cho Admin/Chỉ huy):** Vào menu **Hồ sơ CBCS** -> Nhấn **Thêm cán bộ mới**. Nhập đầy đủ thông tin (Họ tên, cấp bậc, chức vụ, tổ công tác, ngày sinh...).
@@ -35,7 +44,7 @@ Hồ sơ Cán bộ là nền tảng để hệ thống liên kết các dữ li�
 
 ---
 
-## 3. Bảng Chấm Công & Lịch Trực
+## 4. Bảng Chấm Công & Lịch Trực
 
 Bảng chấm công là nơi tổng hợp ngày làm việc, đi công tác, nghỉ phép của toàn bộ CBCS trong tháng.
 
@@ -56,7 +65,7 @@ Bảng chấm công là nơi tổng hợp ngày làm việc, đi công tác, ngh
 
 ---
 
-## 4. Xin Nghỉ Phép & Quản lý Phép
+## 5. Xin Nghỉ Phép & Quản lý Phép
 
 ### 4.1. Tạo đơn xin phép (Dành cho mọi cán bộ)
 1. Cán bộ vào menu **Nghỉ phép** -> Nhấn **Tạo đơn xin phép**.
@@ -71,7 +80,7 @@ Bảng chấm công là nơi tổng hợp ngày làm việc, đi công tác, ngh
 
 ---
 
-## 5. Bảng Ăn Định Lượng (ADL)
+## 6. Bảng Ăn Định Lượng (ADL)
 
 Đây là tính năng thông minh giúp tự động sinh Kế hoạch và Kết quả công việc cho những ngày làm việc có ăn định lượng (Mã `A` và `CT-A`).
 
@@ -95,7 +104,7 @@ Bảng chấm công là nơi tổng hợp ngày làm việc, đi công tác, ngh
 
 ---
 
-## 6. In Giấy Đi Đường (Công Tác Phí)
+## 7. In Giấy Đi Đường (Công Tác Phí)
 
 Hệ thống hỗ trợ in tự động Giấy đi đường cho Cán bộ vào cuối tháng dựa trên dữ liệu Bảng chấm công.
 
@@ -107,7 +116,7 @@ Hệ thống hỗ trợ in tự động Giấy đi đường cho Cán bộ vào 
 
 ---
 
-## 7. Quản lý Công việc (Task Manager) & Cảnh báo Telegram
+## 8. Quản lý Công việc (Task Manager) & Cảnh báo Telegram
 
 Module này giúp giao việc, theo dõi tiến độ và báo cáo kết quả thực hiện nhiệm vụ một cách chuyên nghiệp. Đặc biệt hệ thống tích hợp sâu với **Bot Telegram** để tự động gửi tin nhắn thông báo tức thì đến điện thoại của CBCS.
 
