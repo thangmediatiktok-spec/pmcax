@@ -95,26 +95,14 @@
                 </button>
                 
                 <% if (currentUser && (currentUser.role !== 'cbcs' || (task.createdBy && task.createdBy.toString() === currentUser._id.toString()))) { %>
-                  <div class="dropdown">
-                    <button class="btn btn-sm btn-light text-muted shadow-none border" type="button" data-bs-toggle="dropdown">
-                      <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                      <li>
-                        <a class="dropdown-item small py-2" href="#" 
-                           data-bs-toggle="modal" data-bs-target="#editTaskModal"
-                           onclick="fillEditModal('<%= task._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= (task.description || '').replace(/'/g, "\\'") %>', '<%= task.frequency %>', '<%= task.dueDate ? task.dueDate.toISOString().split('T')[0] : '' %>', '<%= task.assignee ? task.assignee._id : '' %>')">
-                          <i class="fas fa-edit text-warning me-2"></i>Sửa
-                        </a>
-                      </li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li>
-                        <form action="/work-tasks/<%= task._id %>?_method=DELETE" method="POST" onsubmit="confirmAction(event, this, 'Bạn có chắc chắn muốn xóa công việc này?', 'Xóa công việc', '#d33');">
-                          <button type="submit" class="dropdown-item small py-2 text-danger"><i class="fas fa-trash text-danger me-2"></i>Xóa</button>
-                        </form>
-                      </li>
-                    </ul>
-                  </div>
+                  <button class="btn btn-sm btn-outline-warning shadow-none" type="button" title="Sửa" 
+                          data-bs-toggle="modal" data-bs-target="#editTaskModal"
+                          onclick="fillEditModal('<%= task._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= (task.description || '').replace(/'/g, "\\'") %>', '<%= task.frequency %>', '<%= task.dueDate ? task.dueDate.toISOString().split('T')[0] : '' %>', '<%= task.assignee ? task.assignee._id : '' %>')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <form action="/work-tasks/<%= task._id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="confirmAction(event, this, 'Bạn có chắc chắn muốn xóa công việc này?', 'Xóa công việc', '#d33');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger shadow-none" title="Xóa"><i class="fas fa-trash"></i></button>
+                  </form>
                 <% } %>
                 
               <% } else { %>
