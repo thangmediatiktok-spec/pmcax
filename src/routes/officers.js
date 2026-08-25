@@ -355,7 +355,7 @@ router.get('/export/excel', isAuthenticated, requiresPin, async (req, res) => {
   }
 });
 
-router.get('/:id', isAuthenticated, requiresPin, async (req, res) => {
+router.get('/:id', isAuthenticated, async (req, res) => {
   try {
     const officer = await Officer.findById(req.params.id).populate('toCongTac');
     if (!officer) { req.flash('error', 'Không tìm thấy cán bộ'); return res.redirect('/officers'); }
@@ -400,7 +400,11 @@ router.get('/:id', isAuthenticated, requiresPin, async (req, res) => {
       console.error('AuditLog Error:', logErr);
     }
 
-    res.render('officers/show', { title: officer.hoTen, officer, canEdit, activeMenu });
+    const unlockedProfile = req.session.unlockedProfile || false;
+    // Set return to url in case they want to unlock from here
+    req.session.returnToAfterPin = req.originalUrl;
+
+    res.render('officers/show', { title: officer.hoTen, officer, canEdit, activeMenu, unlockedProfile });
   } catch (err) {
     console.error(err);
     res.redirect('/officers');

@@ -100,18 +100,29 @@
   <!-- Details -->
   <div class="col-lg-9">
     <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white py-3">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <h6 class="mb-0 fw-semibold"><i class="fas fa-info-circle text-primary me-2"></i>Thông tin cá nhân</h6>
+        <% if (!locals.unlockedProfile) { %>
+          <button class="btn btn-sm btn-outline-danger fw-bold" data-bs-toggle="modal" data-bs-target="#unlockPinModal">
+            <i class="fas fa-eye me-1"></i> Hiển thị toàn bộ
+          </button>
+        <% } %>
       </div>
       <div class="card-body p-3">
         <div class="row g-2">
-          <% const fields = [
+          <% 
+            const isUnlocked = locals.unlockedProfile;
+            const maskPhone = (phone) => phone ? phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : '-';
+            const maskCCCD = (cccd) => cccd ? cccd.replace(/(\d{3})\d{6}(\d{3})/, '$1******$2') : '-';
+            const maskText = (text) => text ? '********' : '-';
+            
+            const fields = [
             ['Ngày sinh', fmtDate(officer.ngaySinh)],
-            ['Số CCCD', officer.soCCCD || '-'],
+            ['Số CCCD', isUnlocked ? officer.soCCCD || '-' : maskCCCD(officer.soCCCD)],
             ['Ngày cấp CCCD', fmtDate(officer.ngayCapCCCD)],
-            ['Số điện thoại', officer.soDienThoai || '-'],
-            ['Quê quán', officer.queQuan || '-'],
-            ['HKTT', officer.diaChiThuongTru || '-'],
+            ['Số điện thoại', isUnlocked ? officer.soDienThoai || '-' : maskPhone(officer.soDienThoai)],
+            ['Quê quán', isUnlocked ? officer.queQuan || '-' : maskText(officer.queQuan)],
+            ['HKTT', isUnlocked ? officer.diaChiThuongTru || '-' : maskText(officer.diaChiThuongTru)],
             ['Email', officer.email || '-']
           ]; %>
           <% fields.forEach(([label, val]) => { %>
@@ -159,7 +170,7 @@
         <h6 class="mb-0 fw-semibold"><i class="fas fa-history text-secondary me-2"></i>Quá trình công tác</h6>
       </div>
       <div class="card-body p-3">
-        <p class="mb-0 small" style="white-space: pre-line"><%= officer.quaTrinhCongTac || 'Chưa cập nhật' %></p>
+        <p class="mb-0 small" style="white-space: pre-line"><%= locals.unlockedProfile ? (officer.quaTrinhCongTac || 'Chưa cập nhật') : maskText(officer.quaTrinhCongTac) %></p>
       </div>
     </div>
 
@@ -253,5 +264,28 @@
     watermarkContainer.appendChild(div);
   }
 </script>
+
+<% if (!locals.unlockedProfile) { %>
+<div class="modal fade" id="unlockPinModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-lock me-2"></i>Mở khóa Dữ liệu Tối mật</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/unlock-pin" method="POST">
+        <div class="modal-body p-4 text-center">
+          <p class="text-muted mb-4">Vui lòng nhập Mã PIN bảo mật cấp 2 để hiển thị toàn bộ thông tin cá nhân của cán bộ.</p>
+          <input type="password" name="pinCode" class="form-control form-control-lg text-center fw-bold text-danger mx-auto" maxlength="6" pattern="\d{6}" placeholder="Nhập 6 số Mã PIN" required style="letter-spacing: 15px; font-size: 28px; width: 250px;">
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-danger px-4 fw-bold"><i class="fas fa-unlock me-2"></i>Mở khóa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<% } %>
 
 <%- include('../partials/footer') %>
