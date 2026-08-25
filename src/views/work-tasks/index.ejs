@@ -210,7 +210,7 @@
         <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Thêm công việc</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <form action="/work-tasks" method="POST">
+      <form action="/work-tasks" method="POST" onsubmit="selectAllDestOfficers()">
         <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label fw-semibold small text-muted">Tên công việc <span class="text-danger">*</span></label>
@@ -245,13 +245,31 @@
             </div>
 
             <div class="col-12 mt-2" id="divAssignIndividual">
-              <label class="form-label fw-semibold small text-muted">Người được giao (Có thể chọn nhiều)</label>
-              <select class="form-select" name="assignees" multiple size="4">
-                <% officers.forEach(officer => { %>
-                  <option value="<%= officer._id %>"><%= officer.capBac %> <%= officer.hoTen %></option>
-                <% }) %>
-              </select>
-              <div class="form-text" style="font-size: 11px;">Mẹo: Giữ phím Ctrl (hoặc Cmd trên máy Mac) để chọn nhiều người cùng lúc.</div>
+              <label class="form-label fw-semibold small text-muted">Người được giao</label>
+              <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1">
+                  <div class="small text-muted mb-1 text-center" style="font-size: 10px;">Danh sách cán bộ</div>
+                  <select id="sourceOfficers" class="form-select border-secondary-subtle" multiple size="5" style="font-size: 13px;" ondblclick="moveOfficers('sourceOfficers', 'destOfficers')">
+                    <% officers.forEach(officer => { %>
+                      <option value="<%= officer._id %>"><%= officer.capBac %> <%= officer.hoTen %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="d-flex flex-column gap-2 px-1">
+                  <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1" onclick="moveOfficers('sourceOfficers', 'destOfficers')" title="Chọn">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm px-2 py-1" onclick="moveOfficers('destOfficers', 'sourceOfficers')" title="Bỏ chọn">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="small text-success fw-semibold mb-1 text-center" style="font-size: 10px;">Đã chọn</div>
+                  <select id="destOfficers" name="assignees" class="form-select border-success-subtle bg-success-subtle bg-opacity-10" multiple size="5" style="font-size: 13px;" ondblclick="moveOfficers('destOfficers', 'sourceOfficers')">
+                  </select>
+                </div>
+              </div>
+              <div class="form-text" style="font-size: 11px;">Mẹo: Chọn cán bộ rồi bấm mũi tên, hoặc bấm đúp vào tên để chuyển.</div>
             </div>
 
             <div class="col-12 mt-2" id="divAssignTeam" style="display: none;">
@@ -403,6 +421,23 @@
 </div>
 
 <script>
+  // Dual listbox handle
+  function moveOfficers(fromId, toId) {
+    const fromSelect = document.getElementById(fromId);
+    const toSelect = document.getElementById(toId);
+    Array.from(fromSelect.selectedOptions).forEach(option => {
+      toSelect.add(option);
+      option.selected = false;
+    });
+  }
+
+  function selectAllDestOfficers() {
+    const dest = document.getElementById('destOfficers');
+    if(dest) {
+      Array.from(dest.options).forEach(opt => opt.selected = true);
+    }
+  }
+
   // Hàm xác nhận bằng SweetAlert2
   function confirmAction(event, form, text, confirmBtnText, color) {
     event.preventDefault();
