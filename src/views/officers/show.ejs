@@ -122,7 +122,7 @@
             const fields = [
             ['Ngày sinh', isUnlocked ? fmtDate(officer.ngaySinh) : maskDOB(officer.ngaySinh)],
             ['Số CCCD', isUnlocked ? officer.soCCCD || '-' : maskCCCD(officer.soCCCD)],
-            ['Ngày cấp CCCD', fmtDate(officer.ngayCapCCCD)],
+            ['Ngày cấp CCCD', isUnlocked ? fmtDate(officer.ngayCapCCCD) : '********'],
             ['Số điện thoại', isUnlocked ? officer.soDienThoai || '-' : maskPhone(officer.soDienThoai)],
             ['Quê quán', isUnlocked ? officer.queQuan || '-' : maskText(officer.queQuan)],
             ['HKTT', isUnlocked ? officer.diaChiThuongTru || '-' : maskText(officer.diaChiThuongTru)],
