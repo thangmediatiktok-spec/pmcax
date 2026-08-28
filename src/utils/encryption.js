@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Generate a random 32-byte key if one doesn't exist. In production, this should be in an environment variable.
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex').slice(0, 32); 
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'pmcax_default_secret_key_32bytes'; 
 const ALGORITHM = 'aes-256-cbc';
 
 function encrypt(text) {
