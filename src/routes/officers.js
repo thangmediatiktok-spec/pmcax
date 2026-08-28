@@ -445,13 +445,23 @@ router.get('/:id/edit', isAuthenticated, requiresPin, async (req, res) => {
       return res.redirect(`/officers/${officer._id}`);
     }
 
+    // Lấy số tài liệu đã upload theo từng trường nguồn (để hiển thị badge)
+    const docCountsRaw = await Document.aggregate([
+      { $match: { officer: officer._id, nguonTruong: { $exists: true, $ne: null } } },
+      { $group: { _id: '$nguonTruong', count: { $sum: 1 } } }
+    ]);
+    const docCounts = {};
+    docCountsRaw.forEach(d => { docCounts[d._id] = d.count; });
+
     const ranks = Officer.schema.path('capBac').enumValues;
     const activeMenu = String(user.officerProfile) === String(officer._id) ? 'personal_profile' : 'officers';
-    res.render('officers/edit', { title: 'Chỉnh sửa cán bộ', officer, ranks, teams, activeMenu });
-  } catch {
+    res.render('officers/edit', { title: 'Chỉnh sửa cán bộ', officer, ranks, teams, activeMenu, docCounts });
+  } catch (err) {
+    console.error(err);
     res.redirect('/officers');
   }
 });
+
 
 router.get('/:id/documents', isAuthenticated, async (req, res) => {
   try {

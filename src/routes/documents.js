@@ -69,6 +69,92 @@ router.post('/', isAuthenticated, upload.array('files', 10), async (req, res) =>
   }
 });
 
+// Upload nhanh từ form chỉnh sửa hồ sơ - trả về JSON (AJAX)
+router.post('/quick-upload', isAuthenticated, upload.array('files', 10), async (req, res) => {
+  try {
+    const { officer, tenTaiLieu, loaiTaiLieu, ngayCap, nguonTruong } = req.body;
+    const user = req.session.user;
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'Vui lòng chọn ít nhất 1 file (PDF, JPG, PNG) dưới 5MB.' });
+    }
+
+    if (!officer || !tenTaiLieu || !loaiTaiLieu) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc.' });
+    }
+
+    // Kiểm tra quyền
+    if (user.role === 'cbcs') {
+      if (!user.officerProfile || user.officerProfile.toString() !== officer.toString()) {
+        return res.status(403).json({ success: false, message: 'Bạn không có quyền tải tài liệu cho cán bộ khác.' });
+      }
+    } else if (!['admin', 'truong_cax', 'pho_cax'].includes(user.role)) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện thao tác này.' });
+    }
+
+    const doc = new Document({
+      officer,
+      tenTaiLieu,
+      loaiTaiLieu,
+      ngayCap: ngayCap || undefined,
+      fileUrls: req.files.map(f => `/uploads/documents/${f.filename}`),
+      nguoiTaiLen: user._id,
+      nguonTruong: nguonTruong || undefined
+    });
+
+    await doc.save();
+
+    // Đếm tổng tài liệu theo nguonTruong này
+    const count = await Document.countDocuments({ officer, nguonTruong });
+
+    return res.json({
+      success: true,
+      message: 'Đã tải lên thành công',
+      docId: doc._id,
+      fileCount: req.files.length,
+      totalCount: count
+    });
+  } catch (err) {
+    console.error('Quick upload error:', err);
+    // Xóa file đã upload nếu lưu DB thất bại
+    if (req.files) {
+      req.files.forEach(f => {
+        const fp = path.join('public/uploads/documents', f.filename);
+        if (fs.existsSync(fp)) fs.unlinkSync(fp);
+      });
+    }
+    return res.status(500).json({ success: false, message: 'Lỗi server khi tải lên tài liệu.' });
+  }
+});
+
+// Lấy số lượng tài liệu theo nguonTruong cho 1 officer (JSON)
+router.get('/count/:officerId', isAuthenticated, async (req, res) => {
+  try {
+    const { officerId } = req.params;
+    const user = req.session.user;
+
+    // Chỉ cho phép xem count của chính mình hoặc admin/truong/pho
+    if (user.role === 'cbcs' && (!user.officerProfile || user.officerProfile.toString() !== officerId)) {
+      return res.status(403).json({ success: false });
+    }
+
+    const docs = await Document.aggregate([
+      { $match: { officer: require('mongoose').Types.ObjectId.createFromHexString(officerId), nguonTruong: { $exists: true, $ne: null } } },
+      { $group: { _id: '$nguonTruong', count: { $sum: 1 } } }
+    ]);
+
+    const counts = {};
+    docs.forEach(d => { counts[d._id] = d.count; });
+
+    return res.json({ success: true, counts });
+  } catch (err) {
+    console.error('Count error:', err);
+    return res.status(500).json({ success: false });
+  }
+});
+
+
+
 router.delete('/:id', isAuthenticated, async (req, res) => {
   try {
     const doc = await Document.findById(req.params.id);
