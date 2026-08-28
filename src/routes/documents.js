@@ -28,13 +28,26 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-router.post('/', isAuthenticated, isEditorOrAdmin, upload.array('files', 10), async (req, res) => {
+router.post('/', isAuthenticated, upload.array('files', 10), async (req, res) => {
   try {
     const { officer, tenTaiLieu, loaiTaiLieu, ngayCap } = req.body;
-    
+    const user = req.session.user;
+
     if (!req.files || req.files.length === 0) {
       req.flash('error', 'Vui lòng chọn file đính kèm (PDF, JPG, PNG) dưới 5MB.');
-      return res.redirect(`/officers/${officer}`);
+      return res.redirect(`/officers/${officer}/documents`);
+    }
+
+    // Kiểm tra quyền: Admin/Trưởng/Phó có thể upload cho bất kỳ ai
+    // CBCS chỉ được upload tài liệu của chính mình
+    if (user.role === 'cbcs') {
+      if (!user.officerProfile || user.officerProfile.toString() !== officer.toString()) {
+        req.flash('error', 'Bạn không có quyền tải tài liệu cho cán bộ khác');
+        return res.redirect(`/officers/${officer}/documents`);
+      }
+    } else if (!['admin', 'truong_cax', 'pho_cax'].includes(user.role)) {
+      req.flash('error', 'Bạn không có quyền thực hiện thao tác này');
+      return res.redirect('/dashboard');
     }
 
     const doc = new Document({
@@ -43,12 +56,12 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.array('files', 10), as
       loaiTaiLieu,
       ngayCap: ngayCap || undefined,
       fileUrls: req.files.map(f => `/uploads/documents/${f.filename}`),
-      nguoiTaiLen: req.session.user._id
+      nguoiTaiLen: user._id
     });
 
     await doc.save();
     req.flash('success', 'Đã tải lên tài liệu thành công');
-    res.redirect(`/officers/${officer}`);
+    res.redirect(`/officers/${officer}/documents`);
   } catch (err) {
     console.error(err);
     req.flash('error', 'Lỗi tải lên tài liệu');
@@ -56,7 +69,7 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.array('files', 10), as
   }
 });
 
-router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
+router.delete('/:id', isAuthenticated, async (req, res) => {
   try {
     const doc = await Document.findById(req.params.id);
     if (!doc) {
@@ -64,7 +77,20 @@ router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
       return res.redirect('back');
     }
 
+    const user = req.session.user;
     const officerId = doc.officer;
+
+    // Kiểm tra quyền xóa:
+    // - Admin/Trưởng/Phó xóa được tất cả
+    // - CBCS chỉ xóa tài liệu do chính mình upload
+    const isEditorPlus = ['admin', 'truong_cax', 'pho_cax'].includes(user.role);
+    const isOwnDocument = doc.nguoiTaiLen && doc.nguoiTaiLen.toString() === user._id.toString();
+    const isOwnOfficer = user.officerProfile && user.officerProfile.toString() === officerId.toString();
+
+    if (!isEditorPlus && !(isOwnDocument && isOwnOfficer)) {
+      req.flash('error', 'Bạn không có quyền xóa tài liệu này');
+      return res.redirect(`/officers/${officerId}/documents`);
+    }
     
     // Delete files from disk
     if (doc.fileUrls && doc.fileUrls.length > 0) {
@@ -84,7 +110,7 @@ router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
 
     await Document.findByIdAndDelete(req.params.id);
     req.flash('success', 'Đã xóa tài liệu');
-    res.redirect(`/officers/${officerId}`);
+    res.redirect(`/officers/${officerId}/documents`);
   } catch (err) {
     req.flash('error', 'Lỗi xóa tài liệu');
     res.redirect('back');

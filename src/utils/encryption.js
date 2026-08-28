@@ -1,14 +1,16 @@
 const crypto = require('crypto');
 
-// Generate a random 32-byte key if one doesn't exist. In production, this should be in an environment variable.
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'pmcax_default_secret_key_32bytes'; 
+// ENCRYPTION_KEY phải được khai báo trong file .env. Nếu không có, dùng key mặc định cố định.
+// QUAN TRỌNG: Key phải chính xác 32 bytes (ký tự ASCII) cho aes-256-cbc
+const RAW_KEY = process.env.ENCRYPTION_KEY || 'pmcax_default_secret_key_32bytes';
+const ENCRYPTION_KEY = Buffer.from(RAW_KEY.padEnd(32, '0').slice(0, 32));
 const ALGORITHM = 'aes-256-cbc';
 
 function encrypt(text) {
   if (!text) return text;
   try {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return iv.toString('hex') + ':' + encrypted;
@@ -26,7 +28,7 @@ function decrypt(text) {
     const textParts = text.split(':');
     const iv = Buffer.from(textParts.shift(), 'hex');
     const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;

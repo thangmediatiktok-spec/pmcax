@@ -460,32 +460,45 @@ router.get('/:id/documents', isAuthenticated, async (req, res) => {
     
     // RBAC Check
     const user = req.session.user;
-    let canEdit = false;
+    let canEdit = false; // Quyền quản lý (admin/truong/pho): xóa được tất cả tài liệu
+    let canUpload = false; // Quyền upload: admin/truong/pho hoặc cbcs xem hồ sơ của mình
+
     if (user.role === 'admin' || user.role === 'truong_cax') {
       canEdit = true;
-    } else if (user.role === 'cbcs' && String(user.officerProfile) === String(officer._id)) {
-      canEdit = true;
+      canUpload = true;
     } else if (user.role === 'pho_cax' && user.officerProfile) {
       const phoCax = await Officer.findById(user.officerProfile);
       if (phoCax && phoCax.toCongTac && officer.toCongTac && phoCax.toCongTac.toString() === officer.toCongTac._id.toString()) {
         canEdit = true;
+        canUpload = true;
+      }
+    } else if (user.role === 'cbcs') {
+      const isOwnProfile = String(user.officerProfile) === String(officer._id);
+      if (isOwnProfile) {
+        canUpload = true; // Cán bộ được upload tài liệu của chính mình
+        canEdit = false;  // Nhưng không được xóa tài liệu người khác upload
+      } else {
+        // CBCS không được xem tài liệu của người khác
+        req.flash('error', 'Bạn không có quyền xem tài liệu này');
+        return res.redirect('/dashboard');
       }
     }
 
-    if (!canEdit && user.role === 'cbcs') {
+    if (!canEdit && !canUpload) {
       req.flash('error', 'Bạn không có quyền xem tài liệu này');
       return res.redirect('/dashboard');
     }
 
-    const documents = await Document.find({ officer: officer._id }).populate('nguoiTaiLen', 'hoTen').sort({ createdAt: -1 });
+    const documents = await Document.find({ officer: officer._id }).populate('nguoiTaiLen', '_id hoTen').sort({ createdAt: -1 });
     const activeMenu = String(user.officerProfile) === String(officer._id) ? 'personal_documents' : 'officers';
     
-    res.render('officers/documents', { title: `Tài liệu: ${officer.hoTen}`, officer, documents, canEdit, activeMenu });
+    res.render('officers/documents', { title: `Tài liệu: ${officer.hoTen}`, officer, documents, canEdit, canUpload, activeMenu });
   } catch (err) {
     console.error(err);
     res.redirect('/officers');
   }
 });
+
 
 router.put('/:id', isAuthenticated, upload.single('anhDaiDien'), async (req, res) => {
   try {
