@@ -28,11 +28,11 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-router.post('/', isAuthenticated, isEditorOrAdmin, upload.single('file'), async (req, res) => {
+router.post('/', isAuthenticated, isEditorOrAdmin, upload.array('files', 10), async (req, res) => {
   try {
     const { officer, tenTaiLieu, loaiTaiLieu, ngayCap } = req.body;
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       req.flash('error', 'Vui lòng chọn file đính kèm (PDF, JPG, PNG) dưới 5MB.');
       return res.redirect(`/officers/${officer}`);
     }
@@ -42,7 +42,7 @@ router.post('/', isAuthenticated, isEditorOrAdmin, upload.single('file'), async 
       tenTaiLieu,
       loaiTaiLieu,
       ngayCap: ngayCap || undefined,
-      fileUrl: `/uploads/documents/${req.file.filename}`,
+      fileUrls: req.files.map(f => `/uploads/documents/${f.filename}`),
       nguoiTaiLen: req.session.user._id
     });
 
@@ -66,10 +66,20 @@ router.delete('/:id', isAuthenticated, isEditorOrAdmin, async (req, res) => {
 
     const officerId = doc.officer;
     
-    // Delete file from disk
-    const filePath = path.join('public', doc.fileUrl);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Delete files from disk
+    if (doc.fileUrls && doc.fileUrls.length > 0) {
+      doc.fileUrls.forEach(url => {
+        const filePath = path.join('public', url);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    } else if (doc.fileUrl) {
+      // Fallback for old documents that haven't been migrated
+      const filePath = path.join('public', doc.fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
 
     await Document.findByIdAndDelete(req.params.id);

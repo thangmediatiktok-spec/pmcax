@@ -16,8 +16,8 @@ const documentSchema = new mongoose.Schema({
     enum: ['Quyết định', 'Bằng cấp/Chứng chỉ', 'Căn cước công dân', 'Hồ sơ lý lịch', 'Khác'],
     required: true
   },
-  fileUrl: {
-    type: String,
+  fileUrls: {
+    type: [String],
     required: true
   },
   ngayCap: {

@@ -37,7 +37,13 @@
               <td><small><%= fmtDate(doc.ngayCap) %></small></td>
               <td><small><%= doc.nguoiTaiLen ? doc.nguoiTaiLen.hoTen : '-' %></small></td>
               <td class="text-end pe-3">
-                <button type="button" class="btn btn-sm btn-outline-info" title="Xem tài liệu" onclick="viewDocument('<%= doc.fileUrl %>', '<%= doc.tenTaiLieu %>')"><i class="fas fa-eye"></i></button>
+                <% if (doc.fileUrls && doc.fileUrls.length > 0) { %>
+                  <% doc.fileUrls.forEach((url, idx) => { %>
+                    <button type="button" class="btn btn-sm btn-outline-info me-1" title="Xem file <%= idx + 1 %>" onclick="viewDocument('<%= url %>', '<%= doc.tenTaiLieu %> (File <%= idx + 1 %>)')"><i class="fas fa-eye"></i> <%= doc.fileUrls.length > 1 ? (idx + 1) : '' %></button>
+                  <% }) %>
+                <% } else if (doc.fileUrl) { %>
+                  <button type="button" class="btn btn-sm btn-outline-info me-1" title="Xem tài liệu" onclick="viewDocument('<%= doc.fileUrl %>', '<%= doc.tenTaiLieu %>')"><i class="fas fa-eye"></i></button>
+                <% } %>
                 <% if (typeof canEdit !== 'undefined' && canEdit) { %>
                 <form action="/documents/<%= doc._id %>?_method=DELETE" method="POST" class="d-inline delete-form" data-confirm="Xác nhận xóa tài liệu này vĩnh viễn?">
                   <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash"></i></button>
@@ -88,9 +94,9 @@
         </div>
         
         <div class="mb-3">
-          <label class="form-label fw-semibold small">Chọn file <span class="text-danger">*</span></label>
-          <input type="file" name="file" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-          <div class="form-text">Hỗ trợ: PDF, JPG, PNG (Tối đa 5MB)</div>
+          <label class="form-label fw-semibold small">Chọn file(s) <span class="text-danger">*</span></label>
+          <input type="file" name="files" class="form-control" required multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div class="form-text">Hỗ trợ chọn nhiều file (PDF, JPG, PNG). Tối đa 5MB mỗi file.</div>
         </div>
       </div>
       <div class="modal-footer bg-light">
